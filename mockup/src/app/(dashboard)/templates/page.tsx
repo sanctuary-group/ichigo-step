@@ -7,56 +7,30 @@ import {
   faMagnifyingGlass,
   faPenToSquare,
   faTrash,
-  faPaperPlane,
   faSort,
   faFolderPlus,
   faBookOpen,
-  faAngleDoubleLeft,
-  faImage,
-  faLayerGroup,
-  faFont,
-  faNoteSticky,
+  faArrowsUpDown,
 } from "@fortawesome/free-solid-svg-icons";
-import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  MOCK_TEMPLATES,
-  MOCK_TEMPLATE_FOLDERS,
-  type MockMessageType,
-} from "@/mocks/data";
+import { MOCK_TEMPLATES, MOCK_TEMPLATE_FOLDERS } from "@/mocks/data";
 import { cn } from "@/lib/utils";
-import { formatRelativeShort } from "@/lib/time";
 
-const TYPE_ICONS: Record<MockMessageType, IconDefinition> = {
-  text: faFont,
-  image: faImage,
-  flex: faLayerGroup,
-  sticker: faNoteSticky,
-};
+function pad(n: number): string {
+  return n.toString().padStart(2, "0");
+}
 
-const TYPE_LABEL: Record<MockMessageType, string> = {
-  text: "テキスト",
-  image: "画像",
-  flex: "Flex",
-  sticker: "スタンプ",
-};
+function formatYmd(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}`;
+}
 
 export default function TemplatesPage() {
   const [selectedFolderId, setSelectedFolderId] = useState<string>("fld_default");
   const [query, setQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [showFolderPane, setShowFolderPane] = useState(true);
 
   const folderCounts = useMemo(() => {
     const map = new Map<string, number>();
@@ -84,21 +58,6 @@ export default function TemplatesPage() {
 
   const allCheckedInView =
     filtered.length > 0 && filtered.every((t) => selectedIds.has(t.id));
-  const hasSelection = selectedIds.size > 0;
-
-  const handleFolderChange = (id: string) => {
-    setSelectedFolderId(id);
-    setSelectedIds(new Set());
-  };
-
-  const toggleRow = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
 
   const toggleAll = () => {
     setSelectedIds((prev) => {
@@ -112,101 +71,87 @@ export default function TemplatesPage() {
     });
   };
 
+  const toggleRow = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleFolderChange = (id: string) => {
+    setSelectedFolderId(id);
+    setSelectedIds(new Set());
+  };
+
   return (
-    <div className="flex-1 overflow-hidden flex flex-col p-6 lg:p-8 gap-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">テンプレート</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            よく使うメッセージを保存して再利用（モック）
-          </p>
-        </div>
+    <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-5">
+      {/* タイトル行 */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight">テンプレート</h1>
         <Button variant="outline">
           <FontAwesomeIcon icon={faBookOpen} className="size-3.5" />
           マニュアル
         </Button>
       </div>
 
-      <Card className="flex-1 flex overflow-hidden p-0">
-        {showFolderPane && (
-          <aside className="w-56 shrink-0 border-r border-border flex flex-col">
-            <div className="p-3 flex items-center gap-1.5 border-b border-border">
-              <Button variant="outline" size="sm" className="flex-1 h-8">
-                <FontAwesomeIcon icon={faFolderPlus} className="size-3" />
-                フォルダ追加
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label="フォルダ並べ替え"
-              >
-                <FontAwesomeIcon icon={faSort} className="size-3.5" />
-              </Button>
-            </div>
+      <hr className="border-border" />
 
-            <ul className="flex-1 overflow-y-auto py-2">
-              {MOCK_TEMPLATE_FOLDERS.map((f) => {
-                const active = f.id === selectedFolderId;
-                const count = folderCounts.get(f.id) ?? 0;
-                return (
-                  <li key={f.id}>
-                    <button
-                      onClick={() => handleFolderChange(f.id)}
-                      className={cn(
-                        "w-full text-left px-3 h-9 text-sm transition-colors flex items-center gap-2",
-                        active
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "hover:bg-muted/50 text-foreground"
-                      )}
-                    >
-                      <span className="flex-1 truncate">{f.name}</span>
-                      <span
-                        className={cn(
-                          "text-[11px] tabular-nums",
-                          active
-                            ? "text-primary"
-                            : "text-muted-foreground"
-                        )}
-                      >
-                        ({count})
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-
-            <button
-              onClick={() => setShowFolderPane(false)}
-              className="p-3 border-t border-border text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1.5"
-            >
-              <FontAwesomeIcon icon={faAngleDoubleLeft} className="size-3" />
-              フォルダを非表示
-            </button>
-          </aside>
-        )}
-
-        <section className="flex-1 flex flex-col overflow-hidden">
-          <div className="p-3 border-b border-border flex items-center gap-2 flex-wrap">
-            {!showFolderPane && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8"
-                onClick={() => setShowFolderPane(true)}
-              >
-                フォルダを表示
-              </Button>
-            )}
-            <Button size="sm" className="h-8">
-              <FontAwesomeIcon icon={faPlus} className="size-3" />
-              新規作成
+      <div className="grid grid-cols-[240px_1fr] gap-6">
+        {/* 左ペイン: フォルダ */}
+        <aside className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="flex-1 h-9">
+              <FontAwesomeIcon icon={faFolderPlus} className="size-3" />
+              フォルダ追加
             </Button>
-            <Button variant="outline" size="sm" className="h-8">
-              <FontAwesomeIcon icon={faSort} className="size-3" />
+            <Button variant="outline" size="sm" className="h-9">
+              <FontAwesomeIcon icon={faArrowsUpDown} className="size-3" />
               並べ替え
             </Button>
-            <div className="ml-auto relative w-full sm:w-64">
+          </div>
+
+          <ul className="space-y-1">
+            {MOCK_TEMPLATE_FOLDERS.map((f) => {
+              const active = f.id === selectedFolderId;
+              const count = folderCounts.get(f.id) ?? 0;
+              return (
+                <li key={f.id}>
+                  <button
+                    onClick={() => handleFolderChange(f.id)}
+                    className={cn(
+                      "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
+                      active
+                        ? "bg-muted text-foreground"
+                        : "text-foreground hover:bg-muted/50"
+                    )}
+                  >
+                    {f.name} ({count})
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </aside>
+
+        {/* 右ペイン: テーブル */}
+        <section className="space-y-3 min-w-0">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                className="h-9 bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                <FontAwesomeIcon icon={faPlus} className="size-3" />
+                新規作成
+              </Button>
+              <Button variant="outline" size="sm" className="h-9">
+                <FontAwesomeIcon icon={faArrowsUpDown} className="size-3" />
+                並べ替え
+              </Button>
+            </div>
+            <div className="relative w-72 max-w-full">
               <FontAwesomeIcon
                 icon={faMagnifyingGlass}
                 className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
@@ -215,104 +160,85 @@ export default function TemplatesPage() {
                 placeholder="管理名を入力"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="pl-9 h-8"
+                className="pl-9 h-9"
               />
             </div>
           </div>
 
-          <div className="flex-1 overflow-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-10">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/60">
+                <tr>
+                  <th className="w-10 px-3 py-2 text-left">
                     <input
                       type="checkbox"
                       checked={allCheckedInView}
                       onChange={toggleAll}
-                      aria-label="すべて選択"
                       disabled={filtered.length === 0}
                       className="size-4 rounded border-border accent-primary"
+                      aria-label="すべて選択"
                     />
-                  </TableHead>
-                  <TableHead>管理名</TableHead>
-                  <TableHead>内容</TableHead>
-                  <TableHead className="w-28">作成日</TableHead>
-                  <TableHead className="w-28">最終編集日</TableHead>
-                  <TableHead className="w-24">クイックテスト</TableHead>
-                  <TableHead className="w-24 text-right">操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+                  </th>
+                  <SortableHeader label="管理名" />
+                  <th className="px-3 py-2 text-left font-bold text-foreground">
+                    内容
+                  </th>
+                  <SortableHeader label="作成日" className="w-32" />
+                  <th className="px-3 py-2 text-left font-bold text-foreground w-24">
+                    最終
+                  </th>
+                  <th className="px-3 py-2 text-left font-bold text-foreground w-24">
+                    操作
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
                 {filtered.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={7}
-                      className="text-center text-sm text-muted-foreground py-16"
+                  <tr className="border-b border-border">
+                    <td
+                      colSpan={6}
+                      className="px-3 py-5 text-sm font-bold text-foreground"
                     >
                       データがありません。
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ) : (
                   filtered.map((t) => {
                     const checked = selectedIds.has(t.id);
                     return (
-                      <TableRow
+                      <tr
                         key={t.id}
-                        data-state={checked ? "selected" : undefined}
-                        className="hover:bg-muted/40"
+                        className={cn(
+                          "border-b border-border hover:bg-muted/30",
+                          checked && "bg-primary/5"
+                        )}
                       >
-                        <TableCell>
+                        <td className="px-3 py-3">
                           <input
                             type="checkbox"
                             checked={checked}
                             onChange={() => toggleRow(t.id)}
-                            aria-label={`${t.name} を選択`}
                             className="size-4 rounded border-border accent-primary"
+                            aria-label={`${t.name} を選択`}
                           />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2 min-w-0">
-                            <div className="grid place-items-center size-7 rounded-md bg-primary/10 text-primary shrink-0">
-                              <FontAwesomeIcon
-                                icon={TYPE_ICONS[t.messageType]}
-                                className="size-3"
-                              />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="text-sm font-medium truncate">
-                                {t.name}
-                              </div>
-                              <div className="text-[10px] text-muted-foreground">
-                                {TYPE_LABEL[t.messageType]}
-                              </div>
-                            </div>
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="text-sm font-medium truncate">
+                            {t.name}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-xs text-muted-foreground line-clamp-2 max-w-md">
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="text-xs text-muted-foreground line-clamp-2 max-w-xl">
                             {t.preview}
                           </div>
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground tabular-nums">
-                          {formatRelativeShort(t.createdAt)}
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground tabular-nums">
-                          {formatRelativeShort(t.updatedAt)}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs"
-                          >
-                            <FontAwesomeIcon
-                              icon={faPaperPlane}
-                              className="size-2.5"
-                            />
-                            テスト送信
-                          </Button>
-                        </TableCell>
-                        <TableCell className="text-right">
+                        </td>
+                        <td className="px-3 py-3 text-xs text-muted-foreground tabular-nums">
+                          {formatYmd(t.createdAt)}
+                        </td>
+                        <td className="px-3 py-3 text-xs text-muted-foreground tabular-nums">
+                          {formatYmd(t.updatedAt)}
+                        </td>
+                        <td className="px-3 py-3">
                           <div className="inline-flex items-center gap-1">
                             <Button
                               variant="ghost"
@@ -336,41 +262,38 @@ export default function TemplatesPage() {
                               />
                             </Button>
                           </div>
-                        </TableCell>
-                      </TableRow>
+                        </td>
+                      </tr>
                     );
                   })
                 )}
-              </TableBody>
-            </Table>
-          </div>
-
-          <div className="p-3 border-t border-border flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8"
-              disabled={!hasSelection}
-            >
-              一括フォルダ変更
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-destructive hover:text-destructive"
-              disabled={!hasSelection}
-            >
-              <FontAwesomeIcon icon={faTrash} className="size-3" />
-              一括削除
-            </Button>
-            {hasSelection && (
-              <span className="text-xs text-muted-foreground ml-2">
-                {selectedIds.size} 件選択中
-              </span>
-            )}
+              </tbody>
+            </table>
           </div>
         </section>
-      </Card>
+      </div>
     </div>
+  );
+}
+
+function SortableHeader({
+  label,
+  className,
+}: {
+  label: string;
+  className?: string;
+}) {
+  return (
+    <th
+      className={cn(
+        "px-3 py-2 text-left font-bold text-foreground cursor-pointer hover:text-primary",
+        className
+      )}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        <FontAwesomeIcon icon={faSort} className="size-2.5 text-muted-foreground" />
+      </span>
+    </th>
   );
 }
