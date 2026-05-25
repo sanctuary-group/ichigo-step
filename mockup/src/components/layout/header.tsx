@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChevronDown,
@@ -133,7 +134,12 @@ export function Header() {
                 {MOCK_CURRENT_USER.email}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>プロフィール</DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/settings/profile" />}>
+                プロフィール
+              </DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/settings/channels" />}>
+                設定
+              </DropdownMenuItem>
               <DropdownMenuItem>組織を切り替え</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>ログアウト</DropdownMenuItem>

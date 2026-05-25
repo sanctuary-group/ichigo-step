@@ -409,6 +409,277 @@ export const MOCK_SCENARIOS: MockScenario[] = [
   },
 ];
 
+// ---- 拡張モック（L Message 風サイドバー追加機能） ----
+
+export type MockTemplate = {
+  id: string;
+  name: string;
+  category: "あいさつ" | "案内" | "フォロー" | "その他";
+  messageType: MockMessageType;
+  preview: string;
+  lastUsedAt?: string;
+  useCount: number;
+};
+
+export type MockRichMenu = {
+  id: string;
+  name: string;
+  layout: "6grid" | "3vertical" | "4square";
+  isPublished: boolean;
+  publishedAt?: string;
+  channelId: string;
+  tapAreas: { label: string; action: string }[];
+};
+
+export type MockForm = {
+  id: string;
+  title: string;
+  questionCount: number;
+  responseCount: number;
+  status: "draft" | "published" | "closed";
+  createdAt: string;
+};
+
+export type MockAutoReply = {
+  id: string;
+  triggerType: "keyword" | "follow" | "default";
+  trigger: string; // キーワード文字列 or "(友だち追加時)" 等
+  replyPreview: string;
+  hitCount: number;
+  isActive: boolean;
+};
+
+export type MockQrAction = {
+  id: string;
+  name: string;
+  purpose: string;
+  action: "add_tag" | "start_scenario" | "track_source";
+  actionLabel: string;
+  scanCount: number;
+  createdAt: string;
+};
+
+export type MockGreeting = {
+  isActive: boolean;
+  messageType: MockMessageType;
+  content: string;
+};
+
+export const MOCK_TEMPLATES: MockTemplate[] = [
+  {
+    id: "tpl_1",
+    name: "新規友だちあいさつ",
+    category: "あいさつ",
+    messageType: "text",
+    preview: "ご登録ありがとうございます！🍀 こちらでは…",
+    lastUsedAt: "2026-05-24T10:00:00+09:00",
+    useCount: 312,
+  },
+  {
+    id: "tpl_2",
+    name: "セール告知（汎用）",
+    category: "案内",
+    messageType: "text",
+    preview: "本日23:59まで限定30%OFFセール！…",
+    lastUsedAt: "2026-05-25T10:00:00+09:00",
+    useCount: 14,
+  },
+  {
+    id: "tpl_3",
+    name: "アンケートご協力のお願い",
+    category: "案内",
+    messageType: "text",
+    preview: "30秒で完了する簡単なアンケートに…",
+    lastUsedAt: "2026-05-22T14:00:00+09:00",
+    useCount: 7,
+  },
+  {
+    id: "tpl_4",
+    name: "VIP先行案内（Flex）",
+    category: "案内",
+    messageType: "flex",
+    preview: "[Flex] VIP限定 新商品先行ご案内",
+    lastUsedAt: "2026-05-18T09:00:00+09:00",
+    useCount: 5,
+  },
+  {
+    id: "tpl_5",
+    name: "1週間フォローアップ",
+    category: "フォロー",
+    messageType: "text",
+    preview: "ご登録から1週間が経ちました。お困り事は…",
+    useCount: 0,
+  },
+];
+
+export const MOCK_RICH_MENUS: MockRichMenu[] = [
+  {
+    id: "rm_1",
+    name: "メイン（6分割）",
+    layout: "6grid",
+    isPublished: true,
+    publishedAt: "2026-05-01T09:00:00+09:00",
+    channelId: "ch_1",
+    tapAreas: [
+      { label: "予約する", action: "URL: /booking" },
+      { label: "メニュー", action: "URL: /menu" },
+      { label: "店舗一覧", action: "URL: /shops" },
+      { label: "クーポン", action: "メッセージ送信: クーポン" },
+      { label: "お問い合わせ", action: "メッセージ送信: 問い合わせ" },
+      { label: "Instagram", action: "URL: instagram.com" },
+    ],
+  },
+  {
+    id: "rm_2",
+    name: "イベント期間限定",
+    layout: "3vertical",
+    isPublished: false,
+    channelId: "ch_1",
+    tapAreas: [
+      { label: "イベント詳細", action: "URL: /event" },
+      { label: "参加申込", action: "URL: /event/apply" },
+      { label: "アクセス", action: "URL: /access" },
+    ],
+  },
+  {
+    id: "rm_3",
+    name: "ショップ動線（4分割）",
+    layout: "4square",
+    isPublished: false,
+    channelId: "ch_2",
+    tapAreas: [
+      { label: "新商品", action: "URL: /new" },
+      { label: "ランキング", action: "URL: /ranking" },
+      { label: "セール", action: "URL: /sale" },
+      { label: "サポート", action: "メッセージ送信: サポート" },
+    ],
+  },
+];
+
+export const MOCK_FORMS: MockForm[] = [
+  {
+    id: "fm_1",
+    title: "30秒アンケート（新規友だち用）",
+    questionCount: 5,
+    responseCount: 248,
+    status: "published",
+    createdAt: "2026-04-15T10:00:00+09:00",
+  },
+  {
+    id: "fm_2",
+    title: "イベント参加申込フォーム",
+    questionCount: 8,
+    responseCount: 142,
+    status: "published",
+    createdAt: "2026-05-01T09:00:00+09:00",
+  },
+  {
+    id: "fm_3",
+    title: "VIP向け事前ヒアリング",
+    questionCount: 12,
+    responseCount: 56,
+    status: "closed",
+    createdAt: "2026-03-20T11:00:00+09:00",
+  },
+  {
+    id: "fm_4",
+    title: "新サービス満足度調査",
+    questionCount: 7,
+    responseCount: 0,
+    status: "draft",
+    createdAt: "2026-05-24T16:00:00+09:00",
+  },
+];
+
+export const MOCK_AUTO_REPLIES: MockAutoReply[] = [
+  {
+    id: "ar_1",
+    triggerType: "keyword",
+    trigger: "クーポン",
+    replyPreview: "クーポンコードは『ICHIGO10』です。次回ご来店時にお使いください🍀",
+    hitCount: 84,
+    isActive: true,
+  },
+  {
+    id: "ar_2",
+    triggerType: "keyword",
+    trigger: "予約 / 予約したい / ブッキング",
+    replyPreview: "ご予約はこちらのリンクからお願いします → https://...",
+    hitCount: 156,
+    isActive: true,
+  },
+  {
+    id: "ar_3",
+    triggerType: "keyword",
+    trigger: "営業時間",
+    replyPreview: "平日 10:00-19:00 / 土日祝 10:00-18:00",
+    hitCount: 42,
+    isActive: true,
+  },
+  {
+    id: "ar_4",
+    triggerType: "follow",
+    trigger: "(友だち追加時)",
+    replyPreview: "はじめまして！ご登録ありがとうございます🌸",
+    hitCount: 312,
+    isActive: true,
+  },
+  {
+    id: "ar_5",
+    triggerType: "default",
+    trigger: "(マッチなし時)",
+    replyPreview: "メッセージありがとうございます。担当者より追ってご連絡いたします。",
+    hitCount: 23,
+    isActive: false,
+  },
+];
+
+export const MOCK_QR_ACTIONS: MockQrAction[] = [
+  {
+    id: "qr_1",
+    name: "QR広告A（駅前掲示）",
+    purpose: "オフライン広告からの流入計測",
+    action: "add_tag",
+    actionLabel: "タグ付与: 見込み客",
+    scanCount: 87,
+    createdAt: "2026-04-10T10:00:00+09:00",
+  },
+  {
+    id: "qr_2",
+    name: "イベント受付QR",
+    purpose: "イベント来場者に配布",
+    action: "start_scenario",
+    actionLabel: "シナリオ開始: イベント参加者フォロー",
+    scanCount: 142,
+    createdAt: "2026-05-01T09:00:00+09:00",
+  },
+  {
+    id: "qr_3",
+    name: "ショップカードQR",
+    purpose: "店内に常設",
+    action: "track_source",
+    actionLabel: "流入経路記録: ショップカード",
+    scanCount: 56,
+    createdAt: "2026-03-01T10:00:00+09:00",
+  },
+  {
+    id: "qr_4",
+    name: "Instagramプロフィール",
+    purpose: "Instagram bio から誘導",
+    action: "add_tag",
+    actionLabel: "タグ付与: Instagram流入",
+    scanCount: 234,
+    createdAt: "2026-04-20T10:00:00+09:00",
+  },
+];
+
+export const MOCK_GREETING: MockGreeting = {
+  isActive: true,
+  messageType: "text",
+  content:
+    "はじめまして！ご登録ありがとうございます🌸\n\nこのアカウントでは\n・お得なキャンペーン\n・新商品のお知らせ\n・限定クーポン\n\nなどをお届けしていきます🍀\n\nまずは下のメニューから\nお気軽にお問い合わせください！",
+};
+
 export function getFriend(id: string): MockFriend | undefined {
   return MOCK_FRIENDS.find((f) => f.id === id);
 }
