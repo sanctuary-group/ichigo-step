@@ -9,6 +9,8 @@ import {
   faRobot,
   faQrcode,
   faDatabase,
+  faGear,
+  faListCheck,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
@@ -17,6 +19,7 @@ export type NavItem = {
   href: string;
   icon: IconDefinition;
   badge?: number;
+  children?: NavItem[];
 };
 
 export type NavGroup = {
@@ -28,7 +31,21 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     heading: "メッセージ関連",
     items: [
-      { label: "1:1 チャット", href: "/chat", icon: faCommentDots, badge: 7 },
+      {
+        label: "1:1 チャット",
+        href: "/chat",
+        icon: faCommentDots,
+        badge: 7,
+        children: [
+          { label: "1:1チャット", href: "/chat", icon: faCommentDots },
+          { label: "チャット設定", href: "/chat/settings", icon: faGear },
+          {
+            label: "チャット管理",
+            href: "/chat/management",
+            icon: faListCheck,
+          },
+        ],
+      },
       { label: "テンプレート", href: "/templates", icon: faClipboard },
       { label: "メッセージ配信", href: "/broadcasts", icon: faPaperPlane },
       { label: "ステップ配信", href: "/scenarios", icon: faStairs },

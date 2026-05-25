@@ -411,14 +411,20 @@ export const MOCK_SCENARIOS: MockScenario[] = [
 
 // ---- 拡張モック（L Message 風サイドバー追加機能） ----
 
+export type MockTemplateFolder = {
+  id: string;
+  name: string;
+  isSystem?: boolean; // "未分類" 等は削除不可
+};
+
 export type MockTemplate = {
   id: string;
   name: string;
-  category: "あいさつ" | "案内" | "フォロー" | "その他";
+  folderId: string;
   messageType: MockMessageType;
   preview: string;
-  lastUsedAt?: string;
-  useCount: number;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type MockRichMenu = {
@@ -465,50 +471,101 @@ export type MockGreeting = {
   content: string;
 };
 
+export type MockChatStatus = {
+  id: string;
+  name: string;
+  color: string; // hex
+};
+
+export type MockSendShortcut = {
+  id: string;
+  keyword: string;
+  reply: string;
+};
+
+export const MOCK_CHAT_STATUSES: MockChatStatus[] = [
+  { id: "cs_1", name: "見込みあり", color: "#f59e0b" },
+  { id: "cs_2", name: "対応中", color: "#3b82f6" },
+  { id: "cs_3", name: "フォロー", color: "#10b981" },
+  { id: "cs_4", name: "トラブル", color: "#ef4444" },
+  { id: "cs_5", name: "対応完了", color: "#6b7280" },
+];
+
+export const MOCK_SEND_SHORTCUTS: MockSendShortcut[] = [
+  {
+    id: "sh_1",
+    keyword: "/thanks",
+    reply: "お問い合わせありがとうございます🍀",
+  },
+  {
+    id: "sh_2",
+    keyword: "/hours",
+    reply: "営業時間: 平日 10:00 - 19:00 / 土日祝 休業",
+  },
+  {
+    id: "sh_3",
+    keyword: "/access",
+    reply: "アクセス: 東京都渋谷区... (Google Maps: https://...)",
+  },
+  {
+    id: "sh_4",
+    keyword: "/holiday",
+    reply: "本日は休業日です。翌営業日に対応いたします。",
+  },
+];
+
+export const MOCK_TEMPLATE_FOLDERS: MockTemplateFolder[] = [
+  { id: "fld_default", name: "未分類", isSystem: true },
+  { id: "fld_greeting", name: "挨拶メッセージ" },
+  { id: "fld_announce", name: "案内" },
+  { id: "fld_followup", name: "フォロー" },
+];
+
 export const MOCK_TEMPLATES: MockTemplate[] = [
   {
     id: "tpl_1",
     name: "新規友だちあいさつ",
-    category: "あいさつ",
+    folderId: "fld_greeting",
     messageType: "text",
     preview: "ご登録ありがとうございます！🍀 こちらでは…",
-    lastUsedAt: "2026-05-24T10:00:00+09:00",
-    useCount: 312,
+    createdAt: "2026-04-10T09:00:00+09:00",
+    updatedAt: "2026-05-24T10:00:00+09:00",
   },
   {
     id: "tpl_2",
     name: "セール告知（汎用）",
-    category: "案内",
+    folderId: "fld_announce",
     messageType: "text",
     preview: "本日23:59まで限定30%OFFセール！…",
-    lastUsedAt: "2026-05-25T10:00:00+09:00",
-    useCount: 14,
+    createdAt: "2026-03-15T11:00:00+09:00",
+    updatedAt: "2026-05-25T10:00:00+09:00",
   },
   {
     id: "tpl_3",
     name: "アンケートご協力のお願い",
-    category: "案内",
+    folderId: "fld_announce",
     messageType: "text",
     preview: "30秒で完了する簡単なアンケートに…",
-    lastUsedAt: "2026-05-22T14:00:00+09:00",
-    useCount: 7,
+    createdAt: "2026-04-22T14:00:00+09:00",
+    updatedAt: "2026-05-22T14:00:00+09:00",
   },
   {
     id: "tpl_4",
     name: "VIP先行案内（Flex）",
-    category: "案内",
+    folderId: "fld_announce",
     messageType: "flex",
     preview: "[Flex] VIP限定 新商品先行ご案内",
-    lastUsedAt: "2026-05-18T09:00:00+09:00",
-    useCount: 5,
+    createdAt: "2026-05-01T09:00:00+09:00",
+    updatedAt: "2026-05-18T09:00:00+09:00",
   },
   {
     id: "tpl_5",
     name: "1週間フォローアップ",
-    category: "フォロー",
+    folderId: "fld_followup",
     messageType: "text",
     preview: "ご登録から1週間が経ちました。お困り事は…",
-    useCount: 0,
+    createdAt: "2026-05-20T16:00:00+09:00",
+    updatedAt: "2026-05-20T16:00:00+09:00",
   },
 ];
 
