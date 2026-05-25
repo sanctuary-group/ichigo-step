@@ -55,6 +55,8 @@ export type MockBroadcast = {
   status: "draft" | "scheduled" | "sending" | "sent" | "failed";
   scheduledAt?: string;
   sentAt?: string;
+  createdAt: string;
+  updatedAt: string;
   totalCount: number;
   successCount: number;
 };
@@ -67,6 +69,12 @@ export type MockScenarioStep = {
   preview: string;
 };
 
+export type MockScenarioFolder = {
+  id: string;
+  name: string;
+  isSystem?: boolean;
+};
+
 export type MockScenario = {
   id: string;
   name: string;
@@ -75,8 +83,18 @@ export type MockScenario = {
   triggerTagId?: string;
   isActive: boolean;
   enrolledCount: number;
+  terminatedCount: number;
+  completedCount: number;
+  folderId: string;
   steps: MockScenarioStep[];
 };
+
+export const MOCK_SCENARIO_FOLDERS: MockScenarioFolder[] = [
+  { id: "sfld_default", name: "未分類", isSystem: true },
+  { id: "sfld_welcome", name: "ウェルカム" },
+  { id: "sfld_event", name: "イベント" },
+  { id: "sfld_vip", name: "VIP" },
+];
 
 export const MOCK_CHANNELS: MockChannel[] = [
   { id: "ch_1", name: "ichigo-step 公式LINE", basicId: "@ichigo-step" },
@@ -274,6 +292,8 @@ export const MOCK_BROADCASTS: MockBroadcast[] = [
     targetType: "all",
     status: "sent",
     sentAt: "2026-05-25T10:00:00+09:00",
+    createdAt: "2026-05-24T09:00:00+09:00",
+    updatedAt: "2026-05-25T09:55:00+09:00",
     totalCount: 1248,
     successCount: 1240,
   },
@@ -286,6 +306,8 @@ export const MOCK_BROADCASTS: MockBroadcast[] = [
     targetTagId: "tag_vip",
     status: "scheduled",
     scheduledAt: "2026-05-26T09:00:00+09:00",
+    createdAt: "2026-05-23T14:00:00+09:00",
+    updatedAt: "2026-05-24T11:00:00+09:00",
     totalCount: 56,
     successCount: 0,
   },
@@ -297,6 +319,9 @@ export const MOCK_BROADCASTS: MockBroadcast[] = [
     targetType: "tag",
     targetTagId: "tag_lead",
     status: "draft",
+    scheduledAt: "2026-05-30T10:00:00+09:00",
+    createdAt: "2026-05-22T16:00:00+09:00",
+    updatedAt: "2026-05-24T18:00:00+09:00",
     totalCount: 0,
     successCount: 0,
   },
@@ -309,6 +334,8 @@ export const MOCK_BROADCASTS: MockBroadcast[] = [
     targetTagId: "tag_event",
     status: "sent",
     sentAt: "2026-05-22T18:00:00+09:00",
+    createdAt: "2026-05-21T10:00:00+09:00",
+    updatedAt: "2026-05-22T17:30:00+09:00",
     totalCount: 142,
     successCount: 141,
   },
@@ -320,6 +347,8 @@ export const MOCK_BROADCASTS: MockBroadcast[] = [
     targetType: "all",
     status: "failed",
     sentAt: "2026-05-20T12:00:00+09:00",
+    createdAt: "2026-05-19T15:00:00+09:00",
+    updatedAt: "2026-05-20T11:50:00+09:00",
     totalCount: 1200,
     successCount: 230,
   },
@@ -333,6 +362,9 @@ export const MOCK_SCENARIOS: MockScenario[] = [
     triggerType: "friend_add",
     isActive: true,
     enrolledCount: 312,
+    terminatedCount: 24,
+    completedCount: 892,
+    folderId: "sfld_welcome",
     steps: [
       {
         id: "ss_1",
@@ -372,6 +404,9 @@ export const MOCK_SCENARIOS: MockScenario[] = [
     triggerTagId: "tag_event",
     isActive: true,
     enrolledCount: 84,
+    terminatedCount: 8,
+    completedCount: 156,
+    folderId: "sfld_event",
     steps: [
       {
         id: "se_1",
@@ -397,6 +432,9 @@ export const MOCK_SCENARIOS: MockScenario[] = [
     triggerTagId: "tag_vip",
     isActive: false,
     enrolledCount: 0,
+    terminatedCount: 0,
+    completedCount: 0,
+    folderId: "sfld_vip",
     steps: [
       {
         id: "sv_1",

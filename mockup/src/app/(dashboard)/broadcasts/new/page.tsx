@@ -4,260 +4,266 @@ import { useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faChevronLeft,
-  faFont,
-  faImage,
-  faLayerGroup,
+  faCalendar,
+  faClock,
+  faCircleQuestion,
+  faPlus,
+  faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
 
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { MessagePreview } from "@/components/message-preview";
-import { MOCK_TAGS, type MockMessageType } from "@/mocks/data";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MOCK_CHANNELS, MOCK_FRIENDS } from "@/mocks/data";
+import { cn } from "@/lib/utils";
 
-type MessageDraft = {
-  text: string;
-  imageCaption: string;
-  flexLabel: string;
-};
+type SendTiming = "immediate" | "scheduled";
+type TargetMode = "all" | "filter";
+
+const MAX_TITLE = 20;
+const ACTIVE_FRIENDS = MOCK_FRIENDS.filter((f) => f.isFollowing).length;
 
 export default function NewBroadcastPage() {
   const [title, setTitle] = useState("");
-  const [type, setType] = useState<MockMessageType>("text");
-  const [draft, setDraft] = useState<MessageDraft>({
-    text: "",
-    imageCaption: "",
-    flexLabel: "[Flex] 新商品キャンペーン",
-  });
-  const [targetType, setTargetType] = useState<"all" | "tag">("all");
-  const [targetTagId, setTargetTagId] = useState<string>("tag_vip");
-  const [schedule, setSchedule] = useState<"now" | "later">("now");
-  const [scheduledAt, setScheduledAt] = useState<string>("");
+  const [timing, setTiming] = useState<SendTiming>("scheduled");
+  const [date, setDate] = useState("2026-05-26");
+  const [time, setTime] = useState("00:48");
+  const [target, setTarget] = useState<TargetMode>("all");
 
-  const previewContent =
-    type === "text"
-      ? draft.text
-      : type === "image"
-        ? draft.imageCaption
-        : draft.flexLabel;
+  const sender = MOCK_CHANNELS[0];
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 lg:p-8">
-      <div className="flex items-center gap-3 mb-6">
+    <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-5">
+      {/* タイトル */}
+      <div className="flex items-start justify-between">
+        <h1 className="text-2xl font-bold tracking-tight">メッセージ登録</h1>
         <Link
           href="/broadcasts"
-          className={buttonVariants({ variant: "ghost", size: "icon" })}
+          className="text-sm text-blue-600 dark:text-blue-400 underline hover:no-underline"
         >
-          <FontAwesomeIcon icon={faChevronLeft} className="size-4" />
+          メッセージ配信一覧に戻る
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">配信を作成</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            メッセージ・対象・送信タイミングを設定します
-          </p>
-        </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6">
-        {/* Left: form */}
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>基本情報</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="title">配信タイトル（管理用）</Label>
-                <Input
-                  id="title"
-                  placeholder="例: 5月末セールのお知らせ"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+      <hr className="border-border" />
+
+      {/* 2x2 カードグリッド */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* 管理用タイトル */}
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between gap-3">
+              <Label className="text-sm font-bold">
+                管理用タイトル
+                <span className="font-normal text-muted-foreground">
+                  （友だちには公開されません）
+                </span>
+                <span className="text-destructive ml-1">*</span>
+              </Label>
+              <span className="text-xs text-muted-foreground tabular-nums shrink-0">
+                {title.length}/{MAX_TITLE}
+              </span>
+            </div>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={MAX_TITLE}
+              className="mt-3 h-11"
+            />
+          </CardContent>
+        </Card>
+
+        {/* 送信者名 */}
+        <Card>
+          <CardContent className="p-5">
+            <Label className="text-sm font-bold">送信者名</Label>
+            <div className="mt-3 flex items-center gap-3">
+              <Avatar className="size-9">
+                <AvatarImage src={sender.pictureUrl} />
+                <AvatarFallback>{sender.name.slice(0, 1)}</AvatarFallback>
+              </Avatar>
+              <span className="text-sm flex-1 truncate">{sender.name}</span>
+              <Button
+                size="sm"
+                className="h-9 bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                設定
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 配信タイミング設定 */}
+        <Card>
+          <CardContent className="p-5 space-y-4">
+            <Label className="text-sm font-bold">配信タイミング設定</Label>
+
+            <RadioGroup
+              value={timing}
+              onValueChange={(v) => v && setTiming(v as SendTiming)}
+              className="space-y-3"
+            >
+              <Label
+                className={cn(
+                  "flex items-center gap-3 cursor-pointer text-sm",
+                  timing === "immediate"
+                    ? "text-primary font-bold"
+                    : "text-foreground font-normal"
+                )}
+              >
+                <RadioGroupItem value="immediate" />
+                メッセージ登録後すぐに配信
+              </Label>
+              <div className="flex items-center gap-3 flex-wrap">
+                <Label
+                  className={cn(
+                    "flex items-center gap-3 cursor-pointer text-sm",
+                    timing === "scheduled"
+                      ? "text-primary font-bold"
+                      : "text-foreground font-normal"
+                  )}
+                >
+                  <RadioGroupItem value="scheduled" />
+                  配信予約
+                </Label>
+                <div className="relative">
+                  <FontAwesomeIcon
+                    icon={faCalendar}
+                    className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                  />
+                  <Input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    disabled={timing !== "scheduled"}
+                    className="pl-9 h-10 w-44"
+                  />
+                </div>
+                <div className="relative">
+                  <FontAwesomeIcon
+                    icon={faClock}
+                    className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                  />
+                  <Input
+                    type="time"
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    disabled={timing !== "scheduled"}
+                    className="pl-9 h-10 w-28"
+                  />
+                </div>
+                <span className="text-sm text-foreground">に配信</span>
+              </div>
+            </RadioGroup>
+
+            <div className="bg-muted/60 rounded-md px-3 py-2 text-xs text-foreground">
+              配信日時は複数登録ができます。最大10個の日時まで登録可能です。
+            </div>
+
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              <FontAwesomeIcon icon={faPlus} className="size-3" />
+              配信日時追加
+            </button>
+          </CardContent>
+        </Card>
+
+        {/* 配信先絞込み */}
+        <Card>
+          <CardContent className="p-5 space-y-4">
+            <div className="flex items-start justify-between">
+              <Label className="text-sm font-bold">配信先絞込み</Label>
+              <div className="flex items-center gap-1 text-sm font-bold text-foreground">
+                配信数
+                <FontAwesomeIcon
+                  icon={faCircleQuestion}
+                  className="size-3 text-muted-foreground"
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>メッセージ内容</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Tabs
-                value={type}
-                onValueChange={(v) => setType(v as MockMessageType)}
-              >
-                <TabsList className="mb-4">
-                  <TabsTrigger value="text">
-                    <FontAwesomeIcon icon={faFont} className="size-3.5" />
-                    テキスト
-                  </TabsTrigger>
-                  <TabsTrigger value="image">
-                    <FontAwesomeIcon icon={faImage} className="size-3.5" />
-                    画像
-                  </TabsTrigger>
-                  <TabsTrigger value="flex">
-                    <FontAwesomeIcon icon={faLayerGroup} className="size-3.5" />
-                    Flex
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="text" className="space-y-2">
-                  <Label htmlFor="text">本文</Label>
-                  <Textarea
-                    id="text"
-                    rows={8}
-                    placeholder="送信するメッセージ本文を入力…"
-                    value={draft.text}
-                    onChange={(e) =>
-                      setDraft({ ...draft, text: e.target.value })
-                    }
-                  />
-                  <div className="text-[11px] text-muted-foreground text-right">
-                    {draft.text.length} / 5000 文字
-                  </div>
-                </TabsContent>
-                <TabsContent value="image" className="space-y-3">
-                  <div className="space-y-1.5">
-                    <Label>画像アップロード</Label>
-                    <div className="border-2 border-dashed border-border rounded-lg p-8 grid place-items-center text-center text-xs text-muted-foreground">
-                      <FontAwesomeIcon icon={faImage} className="size-6 mb-2" />
-                      モックでは画像アップロードはできません
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="caption">キャプション（任意）</Label>
-                    <Input
-                      id="caption"
-                      placeholder="画像下のテキスト"
-                      value={draft.imageCaption}
-                      onChange={(e) =>
-                        setDraft({ ...draft, imageCaption: e.target.value })
-                      }
-                    />
-                  </div>
-                </TabsContent>
-                <TabsContent value="flex" className="space-y-2">
-                  <Label htmlFor="flex">Flex Message ラベル（プレビュー用）</Label>
-                  <Input
-                    id="flex"
-                    value={draft.flexLabel}
-                    onChange={(e) =>
-                      setDraft({ ...draft, flexLabel: e.target.value })
-                    }
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Flex Message Designer は MVP 後に対応予定です
-                  </p>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>配信対象</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <RadioGroup
-                value={targetType}
-                onValueChange={(v) => setTargetType(v as "all" | "tag")}
-                className="space-y-2"
+                value={target}
+                onValueChange={(v) => v && setTarget(v as TargetMode)}
+                className="flex items-center gap-4"
               >
-                <Label className="flex items-center gap-2 cursor-pointer font-normal">
-                  <RadioGroupItem value="all" />
-                  全ての友だち（フォロー中）
-                </Label>
-                <Label className="flex items-center gap-2 cursor-pointer font-normal">
-                  <RadioGroupItem value="tag" />
-                  タグで絞り込む
-                </Label>
-              </RadioGroup>
-              {targetType === "tag" && (
-                <Select
-                  value={targetTagId}
-                  onValueChange={(v) => v && setTargetTagId(v)}
+                <Label
+                  className={cn(
+                    "flex items-center gap-2 cursor-pointer text-sm",
+                    target === "all"
+                      ? "text-primary font-bold"
+                      : "text-foreground font-normal"
+                  )}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MOCK_TAGS.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>送信タイミング</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <RadioGroup
-                value={schedule}
-                onValueChange={(v) => setSchedule(v as "now" | "later")}
-                className="space-y-2"
-              >
-                <Label className="flex items-center gap-2 cursor-pointer font-normal">
-                  <RadioGroupItem value="now" />
-                  すぐに送信
+                  <RadioGroupItem value="all" />
+                  すべての友だち
                 </Label>
-                <Label className="flex items-center gap-2 cursor-pointer font-normal">
-                  <RadioGroupItem value="later" />
-                  日時を指定して予約
+                <Label
+                  className={cn(
+                    "flex items-center gap-2 cursor-pointer text-sm",
+                    target === "filter"
+                      ? "text-primary font-bold"
+                      : "text-foreground font-normal"
+                  )}
+                >
+                  <RadioGroupItem value="filter" />
+                  絞り込み
                 </Label>
               </RadioGroup>
-              {schedule === "later" && (
-                <Input
-                  type="datetime-local"
-                  value={scheduledAt}
-                  onChange={(e) => setScheduledAt(e.target.value)}
-                />
-              )}
-            </CardContent>
-          </Card>
+              <Button
+                size="sm"
+                disabled={target !== "filter"}
+                className="h-9 bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-60"
+              >
+                設定
+              </Button>
+              <div className="ml-auto flex items-center gap-2">
+                <button
+                  type="button"
+                  className="text-sm text-blue-600 dark:text-blue-400 underline hover:no-underline tabular-nums"
+                >
+                  {ACTIVE_FRIENDS}人(予定)
+                </button>
+                <Button
+                  size="sm"
+                  className="h-9 bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  再計算
+                </Button>
+              </div>
+            </div>
 
-          <div className="flex items-center justify-end gap-2 pb-6">
-            <Link
-              href="/broadcasts"
-              className={buttonVariants({ variant: "outline" })}
-            >
-              キャンセル
-            </Link>
-            <Button variant="outline">下書き保存</Button>
-            <Button>
-              {schedule === "now" ? "今すぐ送信" : "予約する"}
-            </Button>
-          </div>
-        </div>
-
-        {/* Right: preview */}
-        <div className="space-y-3 xl:sticky xl:top-4 self-start">
-          <div className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
-            LINE プレビュー
-          </div>
-          <MessagePreview type={type} content={previewContent} />
-          <div className="text-[11px] text-muted-foreground">
-            実機での見た目とは多少異なる場合があります
-          </div>
-        </div>
+            <div className="bg-muted/60 rounded-md px-3 py-3 text-sm text-foreground min-h-20">
+              {target === "all" ? "未設定(全員)" : "絞り込み条件を設定してください"}
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* 次へ */}
+      <div className="pt-2">
+        <Button
+          variant="outline"
+          disabled={title.length === 0}
+          className="border-primary text-primary hover:bg-primary/10 hover:text-primary px-8 disabled:opacity-50"
+        >
+          メッセージの登録に進む
+          <FontAwesomeIcon icon={faChevronDown} className="size-3 ml-1" />
+        </Button>
+      </div>
+
+      <Link
+        href="/broadcasts"
+        className="inline-block text-sm text-blue-600 dark:text-blue-400 underline hover:no-underline"
+      >
+        戻る
+      </Link>
     </div>
   );
 }

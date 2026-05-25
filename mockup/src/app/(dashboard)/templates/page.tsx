@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
@@ -15,8 +15,23 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { MOCK_TEMPLATES, MOCK_TEMPLATE_FOLDERS } from "@/mocks/data";
 import { cn } from "@/lib/utils";
+
+const MAX_TEMPLATE_NAME = 20;
 
 function pad(n: number): string {
   return n.toString().padStart(2, "0");
@@ -31,6 +46,16 @@ export default function TemplatesPage() {
   const [selectedFolderId, setSelectedFolderId] = useState<string>("fld_default");
   const [query, setQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newFolderId, setNewFolderId] = useState<string>("fld_default");
+
+  useEffect(() => {
+    if (createOpen) {
+      setNewName("");
+      setNewFolderId(selectedFolderId);
+    }
+  }, [createOpen, selectedFolderId]);
 
   const folderCounts = useMemo(() => {
     const map = new Map<string, number>();
@@ -142,6 +167,7 @@ export default function TemplatesPage() {
               <Button
                 size="sm"
                 className="h-9 bg-blue-500 hover:bg-blue-600 text-white"
+                onClick={() => setCreateOpen(true)}
               >
                 <FontAwesomeIcon icon={faPlus} className="size-3" />
                 新規作成
@@ -272,6 +298,64 @@ export default function TemplatesPage() {
           </div>
         </section>
       </div>
+
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogTitle className="text-center text-lg font-bold">
+            テンプレート作成
+          </DialogTitle>
+
+          <div className="space-y-5 pt-2">
+            <div className="space-y-2">
+              <div className="flex items-end justify-between">
+                <Label htmlFor="tpl-name" className="text-sm font-bold">
+                  管理名
+                </Label>
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {newName.length}/{MAX_TEMPLATE_NAME}
+                </span>
+              </div>
+              <Input
+                id="tpl-name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                maxLength={MAX_TEMPLATE_NAME}
+                className="h-11"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-bold">フォルダ</Label>
+              <Select
+                value={newFolderId}
+                onValueChange={(v) => v && setNewFolderId(v)}
+              >
+                <SelectTrigger className="h-11 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MOCK_TEMPLATE_FOLDERS.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>
+                      {f.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="pt-2 flex justify-center">
+              <Button
+                variant="outline"
+                disabled={newName.length === 0}
+                className="border-primary text-primary hover:bg-primary/10 hover:text-primary px-10 h-11 disabled:opacity-50"
+                onClick={() => setCreateOpen(false)}
+              >
+                テンプレートを作成
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

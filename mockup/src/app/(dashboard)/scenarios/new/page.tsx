@@ -4,39 +4,27 @@ import { useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faChevronLeft,
-  faGripVertical,
-  faPlus,
-  faTrash,
-  faFont,
-  faImage,
-  faLayerGroup,
   faClock,
+  faUser,
+  faList,
+  faAngleRight,
+  faAngleLeft,
+  faPlus,
+  faCircleQuestion,
 } from "@fortawesome/free-solid-svg-icons";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-  arrayMove,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -44,376 +32,360 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessagePreview } from "@/components/message-preview";
+import { MOCK_SCENARIO_FOLDERS } from "@/mocks/data";
 import { cn } from "@/lib/utils";
-import { MOCK_TAGS, type MockMessageType } from "@/mocks/data";
 
-type EditorStep = {
-  id: string;
-  delayMinutes: number;
-  type: MockMessageType;
-  content: string;
-};
-
-const DEFAULT_STEPS: EditorStep[] = [
-  {
-    id: "es_1",
-    delayMinutes: 0,
-    type: "text",
-    content: "ご登録ありがとうございます！🌸\n簡単に自己紹介させてください。",
-  },
-  {
-    id: "es_2",
-    delayMinutes: 60,
-    type: "image",
-    content: "30秒アンケートで無料プレゼント",
-  },
-  {
-    id: "es_3",
-    delayMinutes: 24 * 60,
-    type: "text",
-    content: "昨日のメッセージはご覧いただけましたか？",
-  },
-];
+const MAX_NAME = 20;
+type TimingMode = "immediate" | "datetime" | "elapsed";
 
 export default function NewScenarioPage() {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [trigger, setTrigger] = useState<
-    "friend_add" | "tag_added" | "manual"
-  >("friend_add");
-  const [triggerTagId, setTriggerTagId] = useState<string>("tag_event");
-  const [isActive, setIsActive] = useState(true);
-  const [steps, setSteps] = useState<EditorStep[]>(DEFAULT_STEPS);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
-  );
-
-  const handleDragEnd = (e: DragEndEvent) => {
-    const { active, over } = e;
-    if (over && active.id !== over.id) {
-      const oldIdx = steps.findIndex((s) => s.id === active.id);
-      const newIdx = steps.findIndex((s) => s.id === over.id);
-      setSteps(arrayMove(steps, oldIdx, newIdx));
-    }
-  };
-
-  const addStep = () => {
-    setSteps([
-      ...steps,
-      {
-        id: `es_${Date.now()}`,
-        delayMinutes: 60,
-        type: "text",
-        content: "",
-      },
-    ]);
-  };
-
-  const updateStep = (id: string, patch: Partial<EditorStep>) => {
-    setSteps(steps.map((s) => (s.id === id ? { ...s, ...patch } : s)));
-  };
-
-  const removeStep = (id: string) => {
-    setSteps(steps.filter((s) => s.id !== id));
-  };
+  const [name, setName] = useState("テスト");
+  const [folderId, setFolderId] = useState<string>("sfld_default");
+  const [pageSize, setPageSize] = useState("50");
+  const [timingOpen, setTimingOpen] = useState(false);
+  const [timingMode, setTimingMode] = useState<TimingMode>("immediate");
+  const [dayOffset, setDayOffset] = useState("0");
+  const [timeOfDay, setTimeOfDay] = useState("00:00");
+  const [elapsedHours, setElapsedHours] = useState("0");
+  const [elapsedMinutes, setElapsedMinutes] = useState("0");
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 lg:p-8">
-      <div className="flex items-center justify-between gap-3 mb-6">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/scenarios"
-            className={buttonVariants({ variant: "ghost", size: "icon" })}
-          >
-            <FontAwesomeIcon icon={faChevronLeft} className="size-4" />
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">シナリオを作成</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              トリガーとステップを設定して自動配信を組み立てます
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Switch
-              checked={isActive}
-              onCheckedChange={setIsActive}
-              id="active"
-            />
-            <Label htmlFor="active" className="text-sm font-normal">
-              {isActive ? "有効" : "停止中"}
+    <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-6">
+      {/* トップ: 管理名 + フォルダ + 戻るリンク */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_auto] gap-4 lg:items-end">
+        <div className="space-y-1.5">
+          <div className="flex items-end justify-between">
+            <Label htmlFor="scenario-name" className="text-sm font-medium">
+              管理名
             </Label>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-4 max-w-4xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>シナリオ基本情報</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="name">シナリオ名</Label>
-              <Input
-                id="name"
-                placeholder="例: 新規友だちウェルカム"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="desc">説明 (任意)</Label>
-              <Textarea
-                id="desc"
-                rows={2}
-                placeholder="このシナリオの目的や対象者をメモ"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>トリガー</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <RadioGroup
-              value={trigger}
-              onValueChange={(v) => setTrigger(v as typeof trigger)}
-              className="space-y-2"
-            >
-              <Label className="flex items-center gap-2 cursor-pointer font-normal">
-                <RadioGroupItem value="friend_add" />
-                友だち追加時に開始
-              </Label>
-              <Label className="flex items-center gap-2 cursor-pointer font-normal">
-                <RadioGroupItem value="tag_added" />
-                指定タグ付与時に開始
-              </Label>
-              <Label className="flex items-center gap-2 cursor-pointer font-normal">
-                <RadioGroupItem value="manual" />
-                手動でエンロール
-              </Label>
-            </RadioGroup>
-            {trigger === "tag_added" && (
-              <div className="pl-6">
-                <Select
-                  value={triggerTagId}
-                  onValueChange={(v) => v && setTriggerTagId(v)}
-                >
-                  <SelectTrigger className="w-64">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MOCK_TAGS.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>ステップ ({steps.length})</CardTitle>
-            <Button variant="outline" size="sm" onClick={addStep}>
-              <FontAwesomeIcon icon={faPlus} className="size-3" />
-              ステップを追加
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              modifiers={[restrictToVerticalAxis]}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={steps.map((s) => s.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-3">
-                  {steps.map((s, i) => (
-                    <SortableStepCard
-                      key={s.id}
-                      step={s}
-                      index={i}
-                      onChange={(patch) => updateStep(s.id, patch)}
-                      onRemove={() => removeStep(s.id)}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-            {steps.length === 0 && (
-              <div className="py-8 text-center text-xs text-muted-foreground">
-                ステップがありません
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <div className="flex items-center justify-end gap-2 pb-6">
-          <Link
-            href="/scenarios"
-            className={buttonVariants({ variant: "outline" })}
-          >
-            キャンセル
-          </Link>
-          <Button variant="outline">下書き保存</Button>
-          <Button>シナリオを保存</Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SortableStepCard({
-  step,
-  index,
-  onChange,
-  onRemove,
-}: {
-  step: EditorStep;
-  index: number;
-  onChange: (patch: Partial<EditorStep>) => void;
-  onRemove: () => void;
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: step.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={cn(
-        "rounded-xl border border-border bg-background p-4",
-        isDragging && "shadow-lg ring-2 ring-primary/30 z-10"
-      )}
-      {...attributes}
-    >
-      <div className="flex items-start gap-3">
-        <button
-          type="button"
-          className="grid place-items-center size-8 rounded-md text-muted-foreground hover:bg-muted cursor-grab active:cursor-grabbing"
-          aria-label="ドラッグして並べ替え"
-          {...listeners}
-        >
-          <FontAwesomeIcon icon={faGripVertical} className="size-3.5" />
-        </button>
-
-        <div className="grid place-items-center size-8 rounded-full bg-primary/10 text-primary text-sm font-semibold shrink-0">
-          {index + 1}
-        </div>
-
-        <div className="flex-1 min-w-0 space-y-3">
-          <div className="flex items-center gap-2">
-            <FontAwesomeIcon
-              icon={faClock}
-              className="size-3 text-muted-foreground"
-            />
-            <Label
-              htmlFor={`delay-${step.id}`}
-              className="text-xs text-muted-foreground"
-            >
-              前のステップから
-            </Label>
-            <Input
-              id={`delay-${step.id}`}
-              type="number"
-              min={0}
-              value={step.delayMinutes}
-              onChange={(e) =>
-                onChange({ delayMinutes: Number(e.target.value) })
-              }
-              className="w-24 h-8 text-sm"
-            />
-            <span className="text-xs text-muted-foreground">分後に配信</span>
-            <span className="text-[11px] text-muted-foreground">
-              ({formatDelay(step.delayMinutes)})
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {name.length}/{MAX_NAME}
             </span>
           </div>
-
-          <Tabs
-            value={step.type}
-            onValueChange={(v) => onChange({ type: v as MockMessageType })}
-          >
-            <TabsList>
-              <TabsTrigger value="text">
-                <FontAwesomeIcon icon={faFont} className="size-3" />
-                テキスト
-              </TabsTrigger>
-              <TabsTrigger value="image">
-                <FontAwesomeIcon icon={faImage} className="size-3" />
-                画像
-              </TabsTrigger>
-              <TabsTrigger value="flex">
-                <FontAwesomeIcon icon={faLayerGroup} className="size-3" />
-                Flex
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-3 items-start">
-            <Textarea
-              rows={4}
-              placeholder={
-                step.type === "text"
-                  ? "メッセージ本文を入力…"
-                  : step.type === "image"
-                    ? "画像のキャプション (任意)"
-                    : "Flex メッセージのラベル"
-              }
-              value={step.content}
-              onChange={(e) => onChange({ content: e.target.value })}
-            />
-            <MessagePreview type={step.type} content={step.content} />
-          </div>
+          <Input
+            id="scenario-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={MAX_NAME}
+            className="h-10"
+          />
         </div>
 
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={onRemove}
-          className="text-muted-foreground hover:text-destructive"
-          aria-label="削除"
+        <div className="space-y-1.5">
+          <Label className="text-sm font-medium">フォルダ</Label>
+          <Select
+            value={folderId}
+            onValueChange={(v) => v && setFolderId(v)}
+          >
+            <SelectTrigger className="h-10">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {MOCK_SCENARIO_FOLDERS.map((f) => (
+                <SelectItem key={f.id} value={f.id}>
+                  {f.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Link
+          href="/scenarios"
+          className="text-sm text-blue-600 dark:text-blue-400 underline hover:no-underline lg:self-center lg:pb-2.5"
         >
-          <FontAwesomeIcon icon={faTrash} className="size-3.5" />
-        </Button>
+          ステップ配信一覧へ戻る
+        </Link>
       </div>
+
+      {/* 選択中の配信対象 */}
+      <button
+        type="button"
+        className="inline-flex items-center gap-3 rounded-full bg-muted/40 hover:bg-muted px-1.5 py-1.5 pr-4 transition-colors"
+      >
+        <span className="grid place-items-center size-8 rounded-full bg-muted-foreground/20">
+          <FontAwesomeIcon
+            icon={faUser}
+            className="size-3.5 text-muted-foreground"
+          />
+        </span>
+        <span className="text-sm text-muted-foreground">選択中の配信対象</span>
+        <span className="inline-flex items-center gap-2 rounded-full bg-background border border-border px-3 py-1">
+          <span className="text-sm font-bold text-foreground">
+            ステップ購読者全員
+          </span>
+          <FontAwesomeIcon
+            icon={faAngleRight}
+            className="size-2.5 text-muted-foreground"
+          />
+        </span>
+      </button>
+
+      {/* アクションバー */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <Button
+          onClick={() => setTimingOpen(true)}
+          className="bg-blue-500 hover:bg-blue-600 text-white h-10 px-5"
+        >
+          <FontAwesomeIcon icon={faClock} className="size-3.5" />
+          ＋ 配信タイミング
+        </Button>
+        <Link
+          href="/scenarios/new/preview"
+          className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-md text-sm font-medium border border-blue-500 text-blue-600 hover:bg-blue-50/40 transition-colors"
+        >
+          <FontAwesomeIcon icon={faList} className="size-3.5" />
+          一括プレビュー
+        </Link>
+
+        <div className="ml-auto flex items-center gap-2 text-sm">
+          <span className="text-muted-foreground">表示件数:</span>
+          <Select value={pageSize} onValueChange={(v) => v && setPageSize(v)}>
+            <SelectTrigger className="h-10 w-24">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="25">25件</SelectItem>
+              <SelectItem value="50">50件</SelectItem>
+              <SelectItem value="100">100件</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" className="h-10">
+            一括操作 <FontAwesomeIcon icon={faAngleRight} className="size-2.5 ml-1" />
+          </Button>
+          <span className="text-muted-foreground tabular-nums">
+            0~0/ 1件表示
+          </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-8 text-muted-foreground"
+            aria-label="前へ"
+          >
+            <FontAwesomeIcon icon={faAngleLeft} className="size-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-8 text-muted-foreground"
+            aria-label="次へ"
+          >
+            <FontAwesomeIcon icon={faAngleRight} className="size-3" />
+          </Button>
+        </div>
+      </div>
+
+      <hr className="border-border" />
+
+      {/* 次の配信タイミングを追加 */}
+      <Button
+        variant="outline"
+        onClick={() => setTimingOpen(true)}
+        className="h-10 border-blue-500 text-blue-600 hover:text-blue-600 hover:bg-blue-50/40 w-auto"
+      >
+        <FontAwesomeIcon icon={faPlus} className="size-3" />
+        次の配信タイミングを追加
+      </Button>
+
+      {/* 余白（配信タイミング未登録の空状態） */}
+      <div className="min-h-40" />
+
+      {/* 戻る */}
+      <Link
+        href="/scenarios"
+        className="inline-flex items-center justify-center h-9 px-6 rounded-md border border-border bg-background text-sm text-muted-foreground hover:bg-muted"
+      >
+        戻る
+      </Link>
+
+      <Dialog open={timingOpen} onOpenChange={setTimingOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogTitle className="text-center text-lg font-bold">
+            配信タイミング選択
+          </DialogTitle>
+          <div className="text-center -mt-2">
+            <a
+              href="#"
+              className="text-sm text-blue-600 dark:text-blue-400 underline hover:no-underline"
+            >
+              配信タイミングの違いがよく分からない方はこちら
+            </a>
+          </div>
+
+          <RadioGroup
+            value={timingMode}
+            onValueChange={(v) => v && setTimingMode(v as TimingMode)}
+            className="space-y-3 pt-3"
+          >
+            {/* ステップ開始直後 */}
+            <label
+              className={cn(
+                "block p-4 rounded-lg border-2 cursor-pointer transition-colors",
+                timingMode === "immediate"
+                  ? "border-primary bg-primary/10"
+                  : "border-border hover:border-primary/40"
+              )}
+            >
+              <div className="flex items-start gap-3">
+                <RadioGroupItem value="immediate" className="mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-foreground">
+                    ステップ開始直後
+                  </div>
+                  <p className="text-sm text-foreground mt-1.5">
+                    <a
+                      href="#"
+                      className="text-blue-600 dark:text-blue-400 underline hover:no-underline"
+                    >
+                      ステップ開始時のトリガー
+                    </a>
+                    が稼働したらすぐに送信します
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    ※友だち追加時ではありません。友だち追加時にステップを開始する方法は{" "}
+                    <a
+                      href="#"
+                      className="text-blue-600 dark:text-blue-400 underline hover:no-underline"
+                    >
+                      こちら
+                    </a>
+                  </p>
+                </div>
+              </div>
+            </label>
+
+            {/* 日時で指定 */}
+            <label
+              className={cn(
+                "block p-4 rounded-lg border-2 cursor-pointer transition-colors",
+                timingMode === "datetime"
+                  ? "border-primary bg-primary/10"
+                  : "border-border hover:border-primary/40"
+              )}
+            >
+              <div className="flex items-start gap-3">
+                <RadioGroupItem value="datetime" className="mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-foreground">
+                    日時で指定
+                  </div>
+                  <p className="text-sm text-foreground mt-1.5">
+                    ステップ開始時からの経過日数と時間で配信タイミングを指定します
+                  </p>
+                  <div className="mt-3 rounded-md bg-muted/60 p-3 space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap text-sm">
+                      <span className="font-bold">ステップ開始から</span>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={dayOffset}
+                        onChange={(e) => setDayOffset(e.target.value)}
+                        onClick={() => setTimingMode("datetime")}
+                        disabled={timingMode !== "datetime"}
+                        className="w-20 h-9 text-center"
+                      />
+                      <span>日後の</span>
+                      <div className="relative">
+                        <FontAwesomeIcon
+                          icon={faClock}
+                          className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                        />
+                        <Input
+                          type="time"
+                          value={timeOfDay}
+                          onChange={(e) => setTimeOfDay(e.target.value)}
+                          onClick={() => setTimingMode("datetime")}
+                          disabled={timingMode !== "datetime"}
+                          className="pl-8 h-9 w-28"
+                        />
+                      </div>
+                      <span>に配信する</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      ※ステップ開始当日に送信する場合は「0日後」を選択してください
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </label>
+
+            {/* 経過時間で指定 */}
+            <label
+              className={cn(
+                "block p-4 rounded-lg border-2 cursor-pointer transition-colors",
+                timingMode === "elapsed"
+                  ? "border-primary bg-primary/10"
+                  : "border-border hover:border-primary/40"
+              )}
+            >
+              <div className="flex items-start gap-3">
+                <RadioGroupItem value="elapsed" className="mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-foreground">
+                    経過時間で指定
+                  </div>
+                  <p className="text-sm text-foreground mt-1.5">
+                    ステップ開始時からの72時間以内の経過時間を指定します
+                  </p>
+                  <div className="mt-3 rounded-md bg-muted/60 p-3 space-y-2">
+                    <div className="flex items-center gap-2 flex-wrap text-sm">
+                      <span className="font-bold">ステップ開始から</span>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={72}
+                        value={elapsedHours}
+                        onChange={(e) => setElapsedHours(e.target.value)}
+                        onClick={() => setTimingMode("elapsed")}
+                        disabled={timingMode !== "elapsed"}
+                        className="w-20 h-9 text-center"
+                      />
+                      <span className="font-bold">時間</span>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={59}
+                        value={elapsedMinutes}
+                        onChange={(e) => setElapsedMinutes(e.target.value)}
+                        onClick={() => setTimingMode("elapsed")}
+                        disabled={timingMode !== "elapsed"}
+                        className="w-20 h-9 text-center"
+                      />
+                      <span>分後に配信する</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      ※設定できるのは72時間00分以内です
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </label>
+          </RadioGroup>
+
+          <div className="pt-4 text-center">
+            <div className="text-sm text-foreground inline-flex items-center gap-1.5">
+              登録できる配信タイミング
+              <FontAwesomeIcon
+                icon={faCircleQuestion}
+                className="size-3.5 text-muted-foreground"
+              />
+            </div>
+            <div className="text-sm text-foreground mt-1">
+              残り <span className="text-base font-bold">0</span>/100
+            </div>
+          </div>
+
+          <div className="flex justify-center pt-2">
+            <Button
+              variant="outline"
+              className="border-primary text-primary hover:bg-primary/10 hover:text-primary px-12 h-11"
+              onClick={() => setTimingOpen(false)}
+            >
+              決定
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-}
-
-function formatDelay(min: number): string {
-  if (min === 0) return "即時";
-  if (min < 60) return `${min}分`;
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  if (h < 24) return m === 0 ? `${h}時間` : `${h}時間${m}分`;
-  const d = Math.floor(h / 24);
-  const rh = h % 24;
-  return rh === 0 ? `${d}日` : `${d}日${rh}時間`;
 }
