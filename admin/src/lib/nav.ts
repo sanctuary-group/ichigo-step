@@ -1,11 +1,11 @@
 import {
   faGaugeHigh,
-  faBuilding,
   faLayerGroup,
   faFileInvoiceDollar,
   faBullhorn,
   faLifeRing,
   faGear,
+  faBuilding,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
@@ -27,9 +27,9 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [{ label: "ダッシュボード", href: "/dashboard", icon: faGaugeHigh }],
   },
   {
-    heading: "テナント管理",
+    heading: "代理店管理",
     items: [
-      { label: "テナント一覧", href: "/tenants", icon: faBuilding },
+      { label: "代理店一覧", href: "/agencies", icon: faBuilding },
       { label: "プラン管理", href: "/plans", icon: faLayerGroup },
     ],
   },

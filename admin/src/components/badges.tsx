@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import type {
   InvoiceStatus,
   PlanTier,
-  TenantStatus,
+  AgencyStatus,
   TicketPriority,
   TicketStatus,
 } from "@/mocks/admin-data";
@@ -10,9 +10,9 @@ import type {
 const BASE =
   "inline-flex items-center gap-1 text-[10px] px-2 h-5 rounded-full font-medium";
 
-// ---- Tenant status ----
+// ---- Agency status ----
 
-const TENANT_STATUS_MAP: Record<TenantStatus, { label: string; cls: string }> =
+const AGENCY_STATUS_MAP: Record<AgencyStatus, { label: string; cls: string }> =
   {
     active: { label: "有効", cls: "bg-primary/10 text-primary" },
     trial: {
@@ -25,14 +25,14 @@ const TENANT_STATUS_MAP: Record<TenantStatus, { label: string; cls: string }> =
     },
   };
 
-export function TenantStatusBadge({
+export function AgencyStatusBadge({
   status,
   className,
 }: {
-  status: TenantStatus;
+  status: AgencyStatus;
   className?: string;
 }) {
-  const v = TENANT_STATUS_MAP[status];
+  const v = AGENCY_STATUS_MAP[status];
   return <span className={cn(BASE, v.cls, className)}>{v.label}</span>;
 }
 

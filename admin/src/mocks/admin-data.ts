@@ -1,5 +1,7 @@
 // ============================================================
 // 運営側（Admin Portal）モックデータ
+// 用語: 「代理店 (Agency)」= ichigo-step を契約して LINE 公式アカウントを運用する利用者
+// 階層: 運営者 → 代理店（= 利用者）
 // ============================================================
 
 export type AdminUser = {
@@ -33,7 +35,7 @@ export type Plan = {
     membersPerOrg: number;
     monthlyMessages: number;
   };
-  tenantCount: number;
+  agencyCount: number; // 加入代理店数
 };
 
 export const MOCK_PLANS: Plan[] = [
@@ -44,7 +46,7 @@ export const MOCK_PLANS: Plan[] = [
     priceJpy: 0,
     features: ["1 LINE 公式アカウント", "友だち管理", "基本配信"],
     limits: { channels: 1, membersPerOrg: 2, monthlyMessages: 1000 },
-    tenantCount: 142,
+    agencyCount: 142,
   },
   {
     id: "plan_standard",
@@ -58,7 +60,7 @@ export const MOCK_PLANS: Plan[] = [
       "メンバー 10 名まで",
     ],
     limits: { channels: 3, membersPerOrg: 10, monthlyMessages: 30000 },
-    tenantCount: 87,
+    agencyCount: 87,
   },
   {
     id: "plan_pro",
@@ -73,34 +75,37 @@ export const MOCK_PLANS: Plan[] = [
       "SSO（予定）",
     ],
     limits: { channels: -1, membersPerOrg: -1, monthlyMessages: 200000 },
-    tenantCount: 24,
+    agencyCount: 24,
   },
 ];
 
 // ============================================================
-// テナント (organizations)
+// 代理店 (= 利用者 = LINE 公式アカウント運用者)
 // ============================================================
 
-export type TenantStatus = "active" | "trial" | "suspended";
+export type AgencyStatus = "active" | "trial" | "suspended";
 
-export type Tenant = {
+export type Agency = {
   id: string;
-  name: string;
+  name: string; // 会社名
   slug: string;
   plan: PlanTier;
-  status: TenantStatus;
+  status: AgencyStatus;
   memberCount: number;
-  channelCount: number;
+  channelCount: number; // LINE 公式アカウント数
   monthlyMessageCount: number;
   mrrJpy: number; // 月次収益
-  createdAt: string; // ISO
+  contractedAt: string; // ISO（契約開始）
   lastActiveAt: string; // ISO
   ownerEmail: string;
+  contactName?: string;
+  contactPhone?: string;
+  note?: string;
 };
 
-export const MOCK_TENANTS: Tenant[] = [
+export const MOCK_AGENCIES: Agency[] = [
   {
-    id: "t_1",
+    id: "ag_1",
     name: "サンクチュアリ株式会社",
     slug: "sanctuary",
     plan: "pro",
@@ -109,12 +114,14 @@ export const MOCK_TENANTS: Tenant[] = [
     channelCount: 5,
     monthlyMessageCount: 78421,
     mrrJpy: 29800,
-    createdAt: "2025-09-12T10:00:00+09:00",
+    contractedAt: "2025-09-12T10:00:00+09:00",
     lastActiveAt: "2026-05-25T11:34:00+09:00",
     ownerEmail: "ryu.ichigo20250310@gmail.com",
+    contactName: "Ryu Ichigo",
+    contactPhone: "03-1234-5678",
   },
   {
-    id: "t_2",
+    id: "ag_2",
     name: "美波コンサルティング",
     slug: "minami",
     plan: "standard",
@@ -123,12 +130,13 @@ export const MOCK_TENANTS: Tenant[] = [
     channelCount: 2,
     monthlyMessageCount: 12480,
     mrrJpy: 9800,
-    createdAt: "2025-11-03T10:00:00+09:00",
+    contractedAt: "2025-11-03T10:00:00+09:00",
     lastActiveAt: "2026-05-25T10:12:00+09:00",
     ownerEmail: "minami@example.com",
+    contactName: "美波 みなみ",
   },
   {
-    id: "t_3",
+    id: "ag_3",
     name: "ワンステップスタジオ",
     slug: "one-step-studio",
     plan: "standard",
@@ -137,12 +145,13 @@ export const MOCK_TENANTS: Tenant[] = [
     channelCount: 3,
     monthlyMessageCount: 18230,
     mrrJpy: 9800,
-    createdAt: "2026-01-22T10:00:00+09:00",
+    contractedAt: "2026-01-22T10:00:00+09:00",
     lastActiveAt: "2026-05-24T19:50:00+09:00",
     ownerEmail: "owner@one-step-studio.jp",
+    contactName: "佐藤 健太",
   },
   {
-    id: "t_4",
+    id: "ag_4",
     name: "Hana 整体院",
     slug: "hana-seitai",
     plan: "free",
@@ -151,12 +160,14 @@ export const MOCK_TENANTS: Tenant[] = [
     channelCount: 1,
     monthlyMessageCount: 412,
     mrrJpy: 0,
-    createdAt: "2026-03-15T10:00:00+09:00",
+    contractedAt: "2026-03-15T10:00:00+09:00",
     lastActiveAt: "2026-05-25T08:00:00+09:00",
     ownerEmail: "hana@example.com",
+    contactName: "花田 さくら",
+    note: "個人経営の整体院、まだ Free プラン",
   },
   {
-    id: "t_5",
+    id: "ag_5",
     name: "新規トライアル A",
     slug: "trial-a",
     plan: "standard",
@@ -165,12 +176,13 @@ export const MOCK_TENANTS: Tenant[] = [
     channelCount: 1,
     monthlyMessageCount: 38,
     mrrJpy: 0,
-    createdAt: "2026-05-20T10:00:00+09:00",
+    contractedAt: "2026-05-20T10:00:00+09:00",
     lastActiveAt: "2026-05-25T12:00:00+09:00",
     ownerEmail: "trial-a@example.com",
+    note: "14日トライアル中、5/27 まで",
   },
   {
-    id: "t_6",
+    id: "ag_6",
     name: "未払い停止中アカウント",
     slug: "suspended-b",
     plan: "standard",
@@ -179,12 +191,13 @@ export const MOCK_TENANTS: Tenant[] = [
     channelCount: 1,
     monthlyMessageCount: 0,
     mrrJpy: 0,
-    createdAt: "2025-08-01T10:00:00+09:00",
+    contractedAt: "2025-08-01T10:00:00+09:00",
     lastActiveAt: "2026-04-10T18:00:00+09:00",
     ownerEmail: "owner@suspended-b.com",
+    note: "2 ヶ月連続未払いで停止中",
   },
   {
-    id: "t_7",
+    id: "ag_7",
     name: "Pro 大口顧客 C",
     slug: "pro-c",
     plan: "pro",
@@ -193,9 +206,12 @@ export const MOCK_TENANTS: Tenant[] = [
     channelCount: 12,
     monthlyMessageCount: 156000,
     mrrJpy: 29800,
-    createdAt: "2025-06-05T10:00:00+09:00",
+    contractedAt: "2025-06-05T10:00:00+09:00",
     lastActiveAt: "2026-05-25T13:00:00+09:00",
     ownerEmail: "admin@pro-c.com",
+    contactName: "高田 真一",
+    contactPhone: "03-9876-5432",
+    note: "12 channel 運用の大口、優先サポート対象",
   },
 ];
 
@@ -207,9 +223,9 @@ export type InvoiceStatus = "paid" | "unpaid" | "overdue" | "draft";
 
 export type Invoice = {
   id: string;
-  number: string; // INV-2026-0042
-  tenantId: string;
-  tenantName: string;
+  number: string;
+  agencyId: string;
+  agencyName: string;
   periodMonth: string; // YYYY-MM
   amountJpy: number;
   status: InvoiceStatus;
@@ -222,8 +238,8 @@ export const MOCK_INVOICES: Invoice[] = [
   {
     id: "iv_1",
     number: "INV-2026-0048",
-    tenantId: "t_1",
-    tenantName: "サンクチュアリ株式会社",
+    agencyId: "ag_1",
+    agencyName: "サンクチュアリ株式会社",
     periodMonth: "2026-05",
     amountJpy: 29800,
     status: "paid",
@@ -234,8 +250,8 @@ export const MOCK_INVOICES: Invoice[] = [
   {
     id: "iv_2",
     number: "INV-2026-0049",
-    tenantId: "t_2",
-    tenantName: "美波コンサルティング",
+    agencyId: "ag_2",
+    agencyName: "美波コンサルティング",
     periodMonth: "2026-05",
     amountJpy: 9800,
     status: "paid",
@@ -246,8 +262,8 @@ export const MOCK_INVOICES: Invoice[] = [
   {
     id: "iv_3",
     number: "INV-2026-0050",
-    tenantId: "t_3",
-    tenantName: "ワンステップスタジオ",
+    agencyId: "ag_3",
+    agencyName: "ワンステップスタジオ",
     periodMonth: "2026-05",
     amountJpy: 9800,
     status: "unpaid",
@@ -257,8 +273,8 @@ export const MOCK_INVOICES: Invoice[] = [
   {
     id: "iv_4",
     number: "INV-2026-0051",
-    tenantId: "t_6",
-    tenantName: "未払い停止中アカウント",
+    agencyId: "ag_6",
+    agencyName: "未払い停止中アカウント",
     periodMonth: "2026-04",
     amountJpy: 9800,
     status: "overdue",
@@ -268,8 +284,8 @@ export const MOCK_INVOICES: Invoice[] = [
   {
     id: "iv_5",
     number: "INV-2026-0052",
-    tenantId: "t_7",
-    tenantName: "Pro 大口顧客 C",
+    agencyId: "ag_7",
+    agencyName: "Pro 大口顧客 C",
     periodMonth: "2026-05",
     amountJpy: 29800,
     status: "paid",
@@ -280,8 +296,8 @@ export const MOCK_INVOICES: Invoice[] = [
   {
     id: "iv_6",
     number: "INV-2026-0053",
-    tenantId: "t_1",
-    tenantName: "サンクチュアリ株式会社",
+    agencyId: "ag_1",
+    agencyName: "サンクチュアリ株式会社",
     periodMonth: "2026-06",
     amountJpy: 29800,
     status: "draft",
@@ -295,7 +311,7 @@ export const MOCK_INVOICES: Invoice[] = [
 // ============================================================
 
 export type AnnouncementSeverity = "info" | "warning" | "critical";
-export type AnnouncementTarget = "all" | "plan" | "tenant";
+export type AnnouncementTarget = "all" | "plan" | "agency";
 
 export type Announcement = {
   id: string;
@@ -304,7 +320,7 @@ export type Announcement = {
   severity: AnnouncementSeverity;
   target: AnnouncementTarget;
   targetPlan?: PlanTier;
-  targetTenantId?: string;
+  targetAgencyId?: string;
   publishedAt: string;
   viewCount: number;
 };
@@ -340,11 +356,11 @@ export const MOCK_ANNOUNCEMENTS: Announcement[] = [
   },
   {
     id: "an_4",
-    title: "個別のお礼メッセージ",
+    title: "ご契約 1 周年のお礼",
     body: "ご利用 1 周年ありがとうございます。",
     severity: "info",
-    target: "tenant",
-    targetTenantId: "t_1",
+    target: "agency",
+    targetAgencyId: "ag_1",
     publishedAt: "2026-05-15T10:00:00+09:00",
     viewCount: 3,
   },
@@ -359,9 +375,9 @@ export type TicketPriority = "low" | "medium" | "high";
 
 export type Ticket = {
   id: string;
-  number: string; // SUP-0123
-  tenantId: string;
-  tenantName: string;
+  number: string;
+  agencyId: string;
+  agencyName: string;
   subject: string;
   status: TicketStatus;
   priority: TicketPriority;
@@ -374,8 +390,8 @@ export const MOCK_TICKETS: Ticket[] = [
   {
     id: "tk_1",
     number: "SUP-0148",
-    tenantId: "t_3",
-    tenantName: "ワンステップスタジオ",
+    agencyId: "ag_3",
+    agencyName: "ワンステップスタジオ",
     subject: "ステップ配信が予定時刻に届かない",
     status: "open",
     priority: "high",
@@ -385,8 +401,8 @@ export const MOCK_TICKETS: Ticket[] = [
   {
     id: "tk_2",
     number: "SUP-0147",
-    tenantId: "t_2",
-    tenantName: "美波コンサルティング",
+    agencyId: "ag_2",
+    agencyName: "美波コンサルティング",
     subject: "請求書の宛名を変更したい",
     status: "in_progress",
     priority: "medium",
@@ -397,8 +413,8 @@ export const MOCK_TICKETS: Ticket[] = [
   {
     id: "tk_3",
     number: "SUP-0146",
-    tenantId: "t_4",
-    tenantName: "Hana 整体院",
+    agencyId: "ag_4",
+    agencyName: "Hana 整体院",
     subject: "Free から Standard へのアップグレード方法",
     status: "open",
     priority: "low",
@@ -408,8 +424,8 @@ export const MOCK_TICKETS: Ticket[] = [
   {
     id: "tk_4",
     number: "SUP-0145",
-    tenantId: "t_7",
-    tenantName: "Pro 大口顧客 C",
+    agencyId: "ag_7",
+    agencyName: "Pro 大口顧客 C",
     subject: "API キーの追加発行希望",
     status: "resolved",
     priority: "medium",
@@ -435,8 +451,8 @@ export const MOCK_AUDIT_LOGS: AuditLog[] = [
   {
     id: "al_1",
     actorName: "Platform Owner",
-    action: "テナントを停止",
-    target: "未払い停止中アカウント (t_6)",
+    action: "代理店を停止",
+    target: "未払い停止中アカウント (ag_6)",
     timestamp: "2026-05-23T14:30:00+09:00",
   },
   {
@@ -457,7 +473,7 @@ export const MOCK_AUDIT_LOGS: AuditLog[] = [
     id: "al_4",
     actorName: "サポート 鈴木",
     action: "API キーを発行",
-    target: "Pro 大口顧客 C (t_7)",
+    target: "Pro 大口顧客 C (ag_7)",
     timestamp: "2026-05-22T16:00:00+09:00",
   },
 ];
@@ -518,6 +534,7 @@ export function getPlanByTier(tier: PlanTier): Plan | undefined {
   return MOCK_PLANS.find((p) => p.tier === tier);
 }
 
-export function getTenantById(id: string): Tenant | undefined {
-  return MOCK_TENANTS.find((t) => t.id === id);
+export function getAgencyById(id?: string): Agency | undefined {
+  if (!id) return undefined;
+  return MOCK_AGENCIES.find((a) => a.id === id);
 }

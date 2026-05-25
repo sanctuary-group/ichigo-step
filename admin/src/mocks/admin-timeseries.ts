@@ -5,12 +5,12 @@
 
 export type DailyPlatformPoint = {
   date: string; // YYYY-MM-DD
-  newTenants: number;
-  totalMessages: number; // 全テナント合計の配信メッセージ数
+  newAgencies: number; // 新規代理店（利用者）
+  totalMessages: number; // 全代理店合計の配信メッセージ数
   mrrJpy: number; // その日時点での MRR スナップショット
 };
 
-const SEED_NEW_TENANTS = [
+const SEED_NEW_AGENCIES = [
   1, 0, 2, 1, 3, 0, 1, 2, 1, 4, 2, 1, 0, 1, 2, 3, 1, 2, 0, 1, 1, 2, 1, 3, 2, 1,
   0, 1, 1, 0,
 ];
@@ -36,7 +36,7 @@ export const LAST_30_DAYS: DailyPlatformPoint[] = (() => {
     const idx = 29 - i;
     days.push({
       date: iso,
-      newTenants: SEED_NEW_TENANTS[idx],
+      newAgencies: SEED_NEW_AGENCIES[idx],
       totalMessages: SEED_TOTAL_MESSAGES[idx],
       mrrJpy: SEED_MRR[idx],
     });
@@ -52,8 +52,8 @@ export type PlatformKpi = {
   isCurrency?: boolean;
 };
 
-const TOTAL_TENANTS = 253;
-const TOTAL_ACTIVE_TENANTS = 234;
+const TOTAL_AGENCIES = 253;
+const TOTAL_ACTIVE_AGENCIES = 234;
 const TOTAL_CHANNELS = 412;
 const CURRENT_MRR = 2010000;
 
@@ -65,13 +65,13 @@ export const PLATFORM_KPIS: PlatformKpi[] = [
     diff: +5.2,
   },
   {
-    label: "総テナント数",
-    value: TOTAL_TENANTS,
+    label: "総代理店",
+    value: TOTAL_AGENCIES,
     diff: +6.8,
   },
   {
-    label: "アクティブ",
-    value: TOTAL_ACTIVE_TENANTS,
+    label: "アクティブ代理店",
+    value: TOTAL_ACTIVE_AGENCIES,
     diff: +6.1,
   },
   {
