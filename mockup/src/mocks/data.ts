@@ -486,11 +486,21 @@ export type MockRichMenuFolder = {
 
 export type MockForm = {
   id: string;
-  title: string;
+  name: string;
+  folderId: string;
+  formType: "標準" | "予約" | "アンケート";
+  distributionUrl: string;
+  status: "draft" | "published" | "closed";
   questionCount: number;
   responseCount: number;
-  status: "draft" | "published" | "closed";
   createdAt: string;
+  updatedAt: string;
+};
+
+export type MockFormFolder = {
+  id: string;
+  name: string;
+  isSystem?: boolean;
 };
 
 export type MockAutoReply = {
@@ -622,40 +632,11 @@ export const MOCK_RICH_MENU_FOLDERS: MockRichMenuFolder[] = [
 
 export const MOCK_RICH_MENUS: MockRichMenu[] = [];
 
-export const MOCK_FORMS: MockForm[] = [
-  {
-    id: "fm_1",
-    title: "30秒アンケート（新規友だち用）",
-    questionCount: 5,
-    responseCount: 248,
-    status: "published",
-    createdAt: "2026-04-15T10:00:00+09:00",
-  },
-  {
-    id: "fm_2",
-    title: "イベント参加申込フォーム",
-    questionCount: 8,
-    responseCount: 142,
-    status: "published",
-    createdAt: "2026-05-01T09:00:00+09:00",
-  },
-  {
-    id: "fm_3",
-    title: "VIP向け事前ヒアリング",
-    questionCount: 12,
-    responseCount: 56,
-    status: "closed",
-    createdAt: "2026-03-20T11:00:00+09:00",
-  },
-  {
-    id: "fm_4",
-    title: "新サービス満足度調査",
-    questionCount: 7,
-    responseCount: 0,
-    status: "draft",
-    createdAt: "2026-05-24T16:00:00+09:00",
-  },
+export const MOCK_FORM_FOLDERS: MockFormFolder[] = [
+  { id: "fmf_default", name: "未分類", isSystem: true },
 ];
+
+export const MOCK_FORMS: MockForm[] = [];
 
 export const MOCK_AUTO_REPLIES: MockAutoReply[] = [
   {
