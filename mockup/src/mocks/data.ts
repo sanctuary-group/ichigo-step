@@ -468,11 +468,20 @@ export type MockTemplate = {
 export type MockRichMenu = {
   id: string;
   name: string;
+  folderId: string;
   layout: "6grid" | "3vertical" | "4square";
   isPublished: boolean;
   publishedAt?: string;
   channelId: string;
   tapAreas: { label: string; action: string }[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MockRichMenuFolder = {
+  id: string;
+  name: string;
+  isSystem?: boolean;
 };
 
 export type MockForm = {
@@ -607,49 +616,11 @@ export const MOCK_TEMPLATES: MockTemplate[] = [
   },
 ];
 
-export const MOCK_RICH_MENUS: MockRichMenu[] = [
-  {
-    id: "rm_1",
-    name: "メイン（6分割）",
-    layout: "6grid",
-    isPublished: true,
-    publishedAt: "2026-05-01T09:00:00+09:00",
-    channelId: "ch_1",
-    tapAreas: [
-      { label: "予約する", action: "URL: /booking" },
-      { label: "メニュー", action: "URL: /menu" },
-      { label: "店舗一覧", action: "URL: /shops" },
-      { label: "クーポン", action: "メッセージ送信: クーポン" },
-      { label: "お問い合わせ", action: "メッセージ送信: 問い合わせ" },
-      { label: "Instagram", action: "URL: instagram.com" },
-    ],
-  },
-  {
-    id: "rm_2",
-    name: "イベント期間限定",
-    layout: "3vertical",
-    isPublished: false,
-    channelId: "ch_1",
-    tapAreas: [
-      { label: "イベント詳細", action: "URL: /event" },
-      { label: "参加申込", action: "URL: /event/apply" },
-      { label: "アクセス", action: "URL: /access" },
-    ],
-  },
-  {
-    id: "rm_3",
-    name: "ショップ動線（4分割）",
-    layout: "4square",
-    isPublished: false,
-    channelId: "ch_2",
-    tapAreas: [
-      { label: "新商品", action: "URL: /new" },
-      { label: "ランキング", action: "URL: /ranking" },
-      { label: "セール", action: "URL: /sale" },
-      { label: "サポート", action: "メッセージ送信: サポート" },
-    ],
-  },
+export const MOCK_RICH_MENU_FOLDERS: MockRichMenuFolder[] = [
+  { id: "rmf_default", name: "未分類", isSystem: true },
 ];
+
+export const MOCK_RICH_MENUS: MockRichMenu[] = [];
 
 export const MOCK_FORMS: MockForm[] = [
   {
