@@ -9,8 +9,9 @@ import {
   faFileLines,
   faTag,
   faEllipsis,
-  faUserPlus,
+  faUserCheck,
 } from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,20 +29,19 @@ const MAX_LEN = 5000;
 
 const TEST_STEPS: string[] = [
   "友だち詳細ページ\n「削除」より\n友だち情報を削除",
-  "スマホのLINE上で\nLINE公式アカウントを\nブロック",
-  "スマホのLINE上で\nLINE公式アカウントを\nブロック解除",
-  "設定したアクションが\n稼働すれば\nテスト成功",
+  "友だちのLINE上で\nLINE公式アカウントに\nスタンプを送信",
+  "設定した\nアクションが稼働すれば\nテスト成功",
 ];
 
-export default function GreetingsPage() {
+export default function ExistingGreetingsPage() {
   const [content, setContent] = useState("");
   const [actionOpen, setActionOpen] = useState(false);
 
   return (
     <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-4">
       <div className="flex items-center gap-3 flex-wrap">
-        <span className="inline-flex items-center rounded-full bg-primary text-primary-foreground px-3 py-1 text-xs font-bold">
-          新規友だち用
+        <span className="inline-flex items-center rounded-full bg-sky-500 text-white px-3 py-1 text-xs font-bold">
+          既存友だち用
         </span>
         <h1 className="text-xl font-bold tracking-tight">
           あいさつメッセージ設定
@@ -55,31 +55,34 @@ export default function GreetingsPage() {
       </div>
 
       <Card className="bg-muted/40">
-        <CardContent className="p-4 flex items-center gap-3">
+        <CardContent className="p-4 flex items-start gap-3">
           <span className="grid place-items-center size-10 rounded-full bg-background border border-border shrink-0">
             <FontAwesomeIcon
-              icon={faUserPlus}
-              className="size-4 text-primary"
+              icon={faUserCheck}
+              className="size-4 text-sky-500"
             />
           </span>
-          <p className="text-sm text-foreground">
-            このページで設定したメッセージ・アクションは
-            <FontAwesomeIcon
-              icon={faCircleInfo}
-              className="size-3.5 mx-1.5 text-muted-foreground"
-            />
-            <a
-              href="#"
-              className="text-blue-600 dark:text-blue-400 underline hover:no-underline font-medium"
-            >
-              新規友だち
-            </a>
-            のみ稼働します。
-          </p>
+          <div className="space-y-1">
+            <p className="text-sm text-foreground">
+              このページで設定したメッセージ・アクションは
+              <FontAwesomeIcon
+                icon={faCircleInfo}
+                className="size-3.5 mx-1.5 text-muted-foreground"
+              />
+              <a
+                href="#"
+                className="text-blue-600 dark:text-blue-400 underline hover:no-underline font-medium"
+              >
+                既存友だち
+              </a>
+              のみ稼働します。
+            </p>
+            <p className="text-sm text-foreground">
+              認証済みアカウントを接続した時に、自動で取得される既存の友だちにはアクションは稼働しません。
+            </p>
+          </div>
         </CardContent>
       </Card>
-
-      <FriendAddUrlCard />
 
       <Tabs defaultValue="settings" className="flex flex-col">
         <TabsList
@@ -104,7 +107,7 @@ export default function GreetingsPage() {
           <Card>
             <CardContent className="p-5 space-y-4">
               <div className="text-sm font-bold">
-                新規友だち追加時メッセージ・アクション設定
+                既存友だちに対するメッセージ・アクション設定
               </div>
 
               <Card className="border-border">
@@ -145,11 +148,11 @@ export default function GreetingsPage() {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     友だち追加時の
-                    <span className="text-foreground font-medium mx-0.5">
+                    <span className="text-primary font-medium mx-0.5">
                       ステップ配信の開始
                     </span>
                     や
-                    <span className="text-foreground font-medium mx-0.5">
+                    <span className="text-primary font-medium mx-0.5">
                       リッチメニュー表示
                     </span>
                     などのアクションをこちらで設定します。
@@ -210,11 +213,13 @@ export default function GreetingsPage() {
         </TabsContent>
 
         <TabsContent value="test" className="space-y-4">
+          <FriendAddUrlCard />
+
           <Card>
             <CardContent className="p-5 space-y-5">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <h3 className="text-sm font-bold">
-                  新規友だち用アクションのテスト方法
+                  既存友だち用アクションのテスト方法
                 </h3>
                 <a
                   href="#"
@@ -229,8 +234,8 @@ export default function GreetingsPage() {
               </div>
 
               <div className="relative">
-                <div className="absolute top-4 left-[12.5%] right-[12.5%] h-px bg-border" />
-                <div className="grid grid-cols-4 gap-3 relative">
+                <div className="absolute top-4 left-[16.67%] right-[16.67%] h-px bg-border" />
+                <div className="grid grid-cols-3 gap-3 relative">
                   {TEST_STEPS.map((step, i) => (
                     <div key={i} className="space-y-3">
                       <div className="flex justify-center">
@@ -238,7 +243,7 @@ export default function GreetingsPage() {
                           {i + 1}
                         </div>
                       </div>
-                      <div className="rounded-md border border-border bg-background px-3 py-3 text-xs text-center leading-relaxed min-h-20 flex items-center justify-center">
+                      <div className="rounded-md bg-muted/40 px-3 py-4 text-xs text-center leading-relaxed min-h-20 flex items-center justify-center">
                         <div className="whitespace-pre-line">{step}</div>
                       </div>
                     </div>
@@ -316,7 +321,7 @@ function ActionTile({
   icon,
   label,
 }: {
-  icon: typeof faClock;
+  icon: IconDefinition;
   label: [string, string];
 }) {
   return (
@@ -332,4 +337,3 @@ function ActionTile({
     </button>
   );
 }
-

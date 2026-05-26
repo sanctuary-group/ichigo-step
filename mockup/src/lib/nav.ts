@@ -4,6 +4,8 @@ import {
   faPaperPlane,
   faStairs,
   faUserPlus,
+  faUserCheck,
+  faUserSlash,
   faTableCells,
   faRectangleList,
   faRobot,
@@ -49,7 +51,24 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "テンプレート", href: "/templates", icon: faClipboard },
       { label: "メッセージ配信", href: "/broadcasts", icon: faPaperPlane },
       { label: "ステップ配信", href: "/scenarios", icon: faStairs },
-      { label: "あいさつメッセージ", href: "/greetings", icon: faUserPlus },
+      {
+        label: "あいさつメッセージ",
+        href: "/greetings",
+        icon: faUserPlus,
+        children: [
+          { label: "新規友だち用", href: "/greetings", icon: faUserPlus },
+          {
+            label: "既存友だち用",
+            href: "/greetings/existing",
+            icon: faUserCheck,
+          },
+          {
+            label: "ブロック解除友だち用",
+            href: "/greetings/unblock",
+            icon: faUserSlash,
+          },
+        ],
+      },
     ],
   },
   {

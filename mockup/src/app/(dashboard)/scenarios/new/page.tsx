@@ -282,23 +282,17 @@ export default function NewScenarioPage() {
                         onChange={(e) => setDayOffset(e.target.value)}
                         onClick={() => setTimingMode("datetime")}
                         disabled={timingMode !== "datetime"}
-                        className="w-20 h-9 text-center"
+                        className="w-20 h-9 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                       />
                       <span>日後の</span>
-                      <div className="relative">
-                        <FontAwesomeIcon
-                          icon={faClock}
-                          className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-                        />
-                        <Input
-                          type="time"
-                          value={timeOfDay}
-                          onChange={(e) => setTimeOfDay(e.target.value)}
-                          onClick={() => setTimingMode("datetime")}
-                          disabled={timingMode !== "datetime"}
-                          className="pl-8 h-9 w-28"
-                        />
-                      </div>
+                      <Input
+                        type="time"
+                        value={timeOfDay}
+                        onChange={(e) => setTimeOfDay(e.target.value)}
+                        onClick={() => setTimingMode("datetime")}
+                        disabled={timingMode !== "datetime"}
+                        className="h-9 w-32"
+                      />
                       <span>に配信する</span>
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -338,7 +332,7 @@ export default function NewScenarioPage() {
                         onChange={(e) => setElapsedHours(e.target.value)}
                         onClick={() => setTimingMode("elapsed")}
                         disabled={timingMode !== "elapsed"}
-                        className="w-20 h-9 text-center"
+                        className="w-20 h-9 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                       />
                       <span className="font-bold">時間</span>
                       <Input
@@ -349,7 +343,7 @@ export default function NewScenarioPage() {
                         onChange={(e) => setElapsedMinutes(e.target.value)}
                         onClick={() => setTimingMode("elapsed")}
                         disabled={timingMode !== "elapsed"}
-                        className="w-20 h-9 text-center"
+                        className="w-20 h-9 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                       />
                       <span>分後に配信する</span>
                     </div>

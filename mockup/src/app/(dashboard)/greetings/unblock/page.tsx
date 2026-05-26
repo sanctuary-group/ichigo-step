@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faCircleInfo,
   faClock,
   faTableCells,
   faFileLines,
   faTag,
   faEllipsis,
-  faUserPlus,
+  faUserSlash,
 } from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,15 +33,15 @@ const TEST_STEPS: string[] = [
   "設定したアクションが\n稼働すれば\nテスト成功",
 ];
 
-export default function GreetingsPage() {
+export default function UnblockGreetingsPage() {
   const [content, setContent] = useState("");
   const [actionOpen, setActionOpen] = useState(false);
 
   return (
     <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-4">
       <div className="flex items-center gap-3 flex-wrap">
-        <span className="inline-flex items-center rounded-full bg-primary text-primary-foreground px-3 py-1 text-xs font-bold">
-          新規友だち用
+        <span className="inline-flex items-center rounded-full bg-orange-500 text-white px-3 py-1 text-xs font-bold">
+          ブロック解除時用
         </span>
         <h1 className="text-xl font-bold tracking-tight">
           あいさつメッセージ設定
@@ -50,7 +50,7 @@ export default function GreetingsPage() {
           href="#"
           className="text-sm text-blue-600 dark:text-blue-400 underline hover:no-underline"
         >
-          友だちの流入経路を分析したい場合はこちら
+          友だちのブロック解除経路を分析したい場合はこちら
         </a>
       </div>
 
@@ -58,28 +58,17 @@ export default function GreetingsPage() {
         <CardContent className="p-4 flex items-center gap-3">
           <span className="grid place-items-center size-10 rounded-full bg-background border border-border shrink-0">
             <FontAwesomeIcon
-              icon={faUserPlus}
-              className="size-4 text-primary"
+              icon={faUserSlash}
+              className="size-4 text-orange-500"
             />
           </span>
           <p className="text-sm text-foreground">
-            このページで設定したメッセージ・アクションは
-            <FontAwesomeIcon
-              icon={faCircleInfo}
-              className="size-3.5 mx-1.5 text-muted-foreground"
-            />
-            <a
-              href="#"
-              className="text-blue-600 dark:text-blue-400 underline hover:no-underline font-medium"
-            >
-              新規友だち
-            </a>
-            のみ稼働します。
+            このページで設定したメッセージ・アクションは{" "}
+            <span className="font-bold">友だちのブロック解除時のみ</span>{" "}
+            稼働します。
           </p>
         </CardContent>
       </Card>
-
-      <FriendAddUrlCard />
 
       <Tabs defaultValue="settings" className="flex flex-col">
         <TabsList
@@ -104,7 +93,7 @@ export default function GreetingsPage() {
           <Card>
             <CardContent className="p-5 space-y-4">
               <div className="text-sm font-bold">
-                新規友だち追加時メッセージ・アクション設定
+                ブロック解除時のメッセージ・アクション設定
               </div>
 
               <Card className="border-border">
@@ -144,12 +133,12 @@ export default function GreetingsPage() {
                     上記メッセージ送信以外のアクション登録
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    友だち追加時の
-                    <span className="text-foreground font-medium mx-0.5">
+                    ブロック解除時の
+                    <span className="text-primary font-medium mx-0.5">
                       ステップ配信の開始
                     </span>
                     や
-                    <span className="text-foreground font-medium mx-0.5">
+                    <span className="text-primary font-medium mx-0.5">
                       リッチメニュー表示
                     </span>
                     などのアクションをこちらで設定します。
@@ -210,11 +199,13 @@ export default function GreetingsPage() {
         </TabsContent>
 
         <TabsContent value="test" className="space-y-4">
+          <FriendAddUrlCard />
+
           <Card>
             <CardContent className="p-5 space-y-5">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <h3 className="text-sm font-bold">
-                  新規友だち用アクションのテスト方法
+                  ブロック解除時アクションのテスト方法
                 </h3>
                 <a
                   href="#"
@@ -238,7 +229,7 @@ export default function GreetingsPage() {
                           {i + 1}
                         </div>
                       </div>
-                      <div className="rounded-md border border-border bg-background px-3 py-3 text-xs text-center leading-relaxed min-h-20 flex items-center justify-center">
+                      <div className="rounded-md bg-muted/40 px-3 py-4 text-xs text-center leading-relaxed min-h-20 flex items-center justify-center">
                         <div className="whitespace-pre-line">{step}</div>
                       </div>
                     </div>
@@ -257,42 +248,6 @@ export default function GreetingsPage() {
               <p className="text-xs text-muted-foreground">
                 (エルメのあいさつメッセージのみご利用いただくことを推奨しています。)
               </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 rounded-md border border-border p-3 bg-muted/20">
-                <div className="rounded-md bg-background border border-border p-3 text-xs leading-relaxed">
-                  <div className="font-medium">テストさん</div>
-                  <div className="whitespace-pre-line mt-1">
-                    {`はじめまして！テストアカウント
-です。
-友だち追加ありがとうございます🐶
-
-このアカウントでは、最新情報
-を定期的に配信していきます💌
-どうぞお楽しみに🎁✨`}
-                  </div>
-                </div>
-                <div className="rounded-md bg-background border border-border p-3">
-                  <div className="text-sm font-bold text-center pb-2 border-b border-border">
-                    LOAのあいさつメッセージをオフにする方法
-                  </div>
-                  <ul className="text-sm mt-3 space-y-1.5">
-                    <li>
-                      <a
-                        href="#"
-                        className="text-blue-600 dark:text-blue-400 underline hover:no-underline"
-                      >
-                        LINE公式アカウント管理画面
-                      </a>
-                      にログイン
-                    </li>
-                    <li className="text-muted-foreground">＞ 設定</li>
-                    <li className="text-muted-foreground">＞ 応答設定</li>
-                    <li className="text-muted-foreground">
-                      ＞ 応答機能「あいさつメッセージ」をオフにする
-                    </li>
-                  </ul>
-                </div>
-              </div>
             </CardContent>
           </Card>
 
@@ -316,7 +271,7 @@ function ActionTile({
   icon,
   label,
 }: {
-  icon: typeof faClock;
+  icon: IconDefinition;
   label: [string, string];
 }) {
   return (
@@ -332,4 +287,3 @@ function ActionTile({
     </button>
   );
 }
-
