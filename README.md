@@ -14,11 +14,16 @@ LINE 公式アカウント向けのマーケティングオートメーション
 
 ```
 ichigo-step/
-└── mockup/      # Next.js 16 + TypeScript + Tailwind v4 + shadcn/ui + Font Awesome
-                 # 静的ダミーデータでデザイン確認用
+├── mockup/      # Phase A: 静的モックアップ（Vercel に公開中）
+├── admin/      # Phase A++: 管理画面モック（凍結中）
+├── apps/
+│   ├── api/    # Phase B: Laravel 13（実 API）
+│   └── web/    # Phase B: Next.js 16（本番フロント、SPA Cookie 認証）
+├── docker/
+│   ├── php/    # PHP 8.3-fpm + 必要拡張
+│   └── nginx/  # api.localhost を fpm に proxy
+└── docker-compose.yml
 ```
-
-将来 `apps/api/`（Laravel）を追加してモノレポ化する予定。
 
 ## 機能（モックアップ範囲）
 
@@ -44,6 +49,8 @@ ichigo-step/
 
 ## ローカルで動かす
 
+### モックアップ（Phase A）
+
 前提: Node.js 20+ と pnpm。
 
 ```bash
@@ -53,6 +60,37 @@ pnpm dev
 ```
 
 → http://localhost:3000
+
+### バックエンド + 本番フロント（Phase B）
+
+前提: Docker Desktop / Docker Compose v2、Node.js 20+ と pnpm。
+
+```bash
+# 1. /etc/hosts に追加（初回のみ）
+echo "127.0.0.1 api.localhost" | sudo tee -a /etc/hosts
+
+# 2. Laravel API + MySQL + Redis + nginx + mailpit + phpmyadmin を起動
+docker compose up -d
+
+# 3. Laravel 依存関係 & マイグレーション
+docker compose exec api composer install
+docker compose exec api php artisan migrate
+
+# 4. ヘルスチェック
+curl http://api.localhost/up   # → 200
+
+# 5. 本番フロント起動
+cd apps/web
+pnpm install
+pnpm dev   # → http://localhost:3000
+```
+
+| URL | 用途 |
+|---|---|
+| http://api.localhost | Laravel API |
+| http://localhost:3000 | Next.js フロント（apps/web） |
+| http://localhost:8080 | phpMyAdmin |
+| http://localhost:8025 | Mailpit（メール受信ビュー） |
 
 ## 参考
 

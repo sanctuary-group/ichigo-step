@@ -48,3 +48,28 @@ next-env.d.ts
 
 # Vercel
 .vercel
+
+# Laravel (apps/api)
+apps/api/vendor/
+apps/api/.env
+apps/api/.env.backup
+apps/api/.env.production
+apps/api/storage/*.key
+apps/api/storage/app/private/*
+apps/api/storage/app/public/*
+apps/api/storage/logs/*
+apps/api/storage/framework/cache/*
+apps/api/storage/framework/sessions/*
+apps/api/storage/framework/testing/*
+apps/api/storage/framework/views/*
+apps/api/bootstrap/cache/*.php
+apps/api/database/database.sqlite
+!apps/api/storage/app/.gitkeep
+!apps/api/storage/logs/.gitkeep
+!apps/api/storage/framework/cache/.gitkeep
+!apps/api/storage/framework/sessions/.gitkeep
+!apps/api/storage/framework/testing/.gitkeep
+!apps/api/storage/framework/views/.gitkeep
+
+# Docker / local state
+docker/php/.cache/
