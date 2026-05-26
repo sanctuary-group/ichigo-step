@@ -8,6 +8,10 @@ import {
   faHeadset,
   faBell,
   faChartColumn,
+  faUser,
+  faFileLines,
+  faYenSign,
+  faRightFromBracket,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
@@ -127,23 +131,61 @@ export function Header() {
               className="size-3 text-muted-foreground"
             />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>{MOCK_CURRENT_USER.name}</DropdownMenuLabel>
-              <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
-                {MOCK_CURRENT_USER.email}
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem render={<Link href="/settings/profile" />}>
-                プロフィール
-              </DropdownMenuItem>
-              <DropdownMenuItem render={<Link href="/settings/channels" />}>
-                設定
-              </DropdownMenuItem>
-              <DropdownMenuItem>組織を切り替え</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>ログアウト</DropdownMenuItem>
-            </DropdownMenuGroup>
+          <DropdownMenuContent align="end" className="w-72 p-3">
+            <div className="flex items-center gap-3 px-2 py-2">
+              <Avatar className="size-10">
+                <AvatarFallback>
+                  {MOCK_CURRENT_USER.name.slice(0, 1)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="text-base font-bold">{MOCK_CURRENT_USER.name}</div>
+            </div>
+            <DropdownMenuSeparator />
+            <div className="flex items-center gap-2 px-2 py-2.5 text-sm">
+              <span className="size-2.5 rounded-full bg-primary" />
+              <span>フリープラン</span>
+            </div>
+            <div className="px-2 pb-2">
+              <Link
+                href="/settings/profile"
+                className="block w-full text-center rounded-md border border-blue-500 text-blue-600 dark:text-blue-400 hover:bg-blue-50/40 dark:hover:bg-blue-950/20 h-10 leading-10 text-sm font-bold transition-colors"
+              >
+                マイページ
+              </Link>
+            </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              render={<Link href="/settings/channels" />}
+              className="gap-3 py-2.5"
+            >
+              <FontAwesomeIcon
+                icon={faUser}
+                className="size-4 text-muted-foreground"
+              />
+              LINE公式アカウント一覧
+            </DropdownMenuItem>
+            <DropdownMenuItem className="gap-3 py-2.5">
+              <FontAwesomeIcon
+                icon={faFileLines}
+                className="size-4 text-muted-foreground"
+              />
+              契約情報
+            </DropdownMenuItem>
+            <DropdownMenuItem className="gap-3 py-2.5">
+              <FontAwesomeIcon
+                icon={faYenSign}
+                className="size-4 text-muted-foreground"
+              />
+              決済履歴・領収書
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="gap-3 py-2.5">
+              <FontAwesomeIcon
+                icon={faRightFromBracket}
+                className="size-4 text-muted-foreground"
+              />
+              ログアウト
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
