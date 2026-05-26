@@ -4,12 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faSeedling,
-  faChevronRight,
-} from "@fortawesome/free-solid-svg-icons";
+import { faChevronRight } from "@fortawesome/free-solid-svg-icons";
 
 import { NAV_GROUPS, type NavItem } from "@/lib/nav";
+import { StrawberryIcon } from "@/components/strawberry-icon";
 import { cn } from "@/lib/utils";
 
 const HOVER_CLOSE_DELAY_MS = 150;
@@ -43,8 +41,8 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex w-60 shrink-0 flex-col border-r border-border bg-sidebar text-sidebar-foreground">
       <div className="flex items-center gap-2 px-5 h-16">
-        <div className="grid place-items-center size-9 rounded-xl bg-primary/10 text-primary">
-          <FontAwesomeIcon icon={faSeedling} className="size-5" />
+        <div className="grid place-items-center size-9 rounded-xl bg-primary/10">
+          <StrawberryIcon className="size-5" />
         </div>
         <div className="leading-tight">
           <div className="text-base font-bold text-sidebar-foreground">
