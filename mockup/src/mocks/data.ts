@@ -505,11 +505,20 @@ export type MockFormFolder = {
 
 export type MockAutoReply = {
   id: string;
+  folderId: string;
   triggerType: "keyword" | "follow" | "default";
-  trigger: string; // キーワード文字列 or "(友だち追加時)" 等
+  keyword: string;
+  schedule: string;
   replyPreview: string;
   hitCount: number;
   isActive: boolean;
+  createdAt: string;
+};
+
+export type MockAutoReplyFolder = {
+  id: string;
+  name: string;
+  isSystem?: boolean;
 };
 
 export type MockQrAction = {
@@ -638,48 +647,11 @@ export const MOCK_FORM_FOLDERS: MockFormFolder[] = [
 
 export const MOCK_FORMS: MockForm[] = [];
 
-export const MOCK_AUTO_REPLIES: MockAutoReply[] = [
-  {
-    id: "ar_1",
-    triggerType: "keyword",
-    trigger: "クーポン",
-    replyPreview: "クーポンコードは『ICHIGO10』です。次回ご来店時にお使いください🍀",
-    hitCount: 84,
-    isActive: true,
-  },
-  {
-    id: "ar_2",
-    triggerType: "keyword",
-    trigger: "予約 / 予約したい / ブッキング",
-    replyPreview: "ご予約はこちらのリンクからお願いします → https://...",
-    hitCount: 156,
-    isActive: true,
-  },
-  {
-    id: "ar_3",
-    triggerType: "keyword",
-    trigger: "営業時間",
-    replyPreview: "平日 10:00-19:00 / 土日祝 10:00-18:00",
-    hitCount: 42,
-    isActive: true,
-  },
-  {
-    id: "ar_4",
-    triggerType: "follow",
-    trigger: "(友だち追加時)",
-    replyPreview: "はじめまして！ご登録ありがとうございます🌸",
-    hitCount: 312,
-    isActive: true,
-  },
-  {
-    id: "ar_5",
-    triggerType: "default",
-    trigger: "(マッチなし時)",
-    replyPreview: "メッセージありがとうございます。担当者より追ってご連絡いたします。",
-    hitCount: 23,
-    isActive: false,
-  },
+export const MOCK_AUTO_REPLY_FOLDERS: MockAutoReplyFolder[] = [
+  { id: "arf_default", name: "未分類", isSystem: true },
 ];
+
+export const MOCK_AUTO_REPLIES: MockAutoReply[] = [];
 
 export const MOCK_QR_ACTIONS: MockQrAction[] = [
   {
