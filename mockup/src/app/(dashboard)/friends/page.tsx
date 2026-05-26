@@ -1,305 +1,303 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faMagnifyingGlass,
-  faFilter,
-  faComments,
-  faPlus,
+  faSort,
+  faChevronLeft,
+  faChevronRight,
+  faBan,
+  faHandPaper,
 } from "@fortawesome/free-solid-svg-icons";
 
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { TagBadge } from "@/components/tag-badge";
-import { EmptyState } from "@/components/empty-state";
-import {
-  MOCK_FRIENDS,
-  MOCK_TAGS,
-  type MockFriend,
-} from "@/mocks/data";
-import { formatDateTime, formatRelativeShort } from "@/lib/time";
-import Link from "next/link";
+import { MOCK_FRIENDS } from "@/mocks/data";
+import { cn } from "@/lib/utils";
+
+type FilterMode = "active" | "hidden" | "blocked" | "blockedBy";
+
+function pad(n: number): string {
+  return n.toString().padStart(2, "0");
+}
+function formatYmd(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
 
 export default function FriendsPage() {
   const [query, setQuery] = useState("");
-  const [tagFilter, setTagFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [tagTargetFriend, setTagTargetFriend] = useState<MockFriend | null>(
-    null
-  );
+  const [mode, setMode] = useState<FilterMode>("active");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const filtered = useMemo(() => {
     return MOCK_FRIENDS.filter((f) => {
-      if (statusFilter === "following" && !f.isFollowing) return false;
-      if (statusFilter === "blocked" && f.isFollowing) return false;
-      if (tagFilter !== "all" && !f.tagIds.includes(tagFilter)) return false;
+      if (mode === "hidden" && !f.isHidden) return false;
+      if (mode === "blocked" && f.isFollowing) return false;
+      if (mode === "blockedBy") return false;
+      if (mode === "active" && (!f.isFollowing || f.isHidden)) return false;
       if (query.trim()) {
         const q = query.trim().toLowerCase();
-        if (!f.displayName.toLowerCase().includes(q)) return false;
+        const hay =
+          f.displayName.toLowerCase() +
+          " " +
+          (f.systemDisplayName?.toLowerCase() ?? "");
+        if (!hay.includes(q)) return false;
       }
       return true;
     });
-  }, [query, tagFilter, statusFilter]);
+  }, [mode, query]);
+
+  const allCheckedInView =
+    filtered.length > 0 && filtered.every((f) => selectedIds.has(f.id));
+
+  const toggleAll = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allCheckedInView) {
+        for (const f of filtered) next.delete(f.id);
+      } else {
+        for (const f of filtered) next.add(f.id);
+      }
+      return next;
+    });
+  };
+
+  const toggleRow = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const clearable = query.length > 0;
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">友だち一覧</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          全 {MOCK_FRIENDS.length} 件 / フォロー中{" "}
-          {MOCK_FRIENDS.filter((f) => f.isFollowing).length} 件
-        </p>
+    <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="px-6 lg:px-8 pt-5 pb-3 border-b border-border">
+        <h1 className="text-lg font-bold tracking-tight">友だちリスト</h1>
       </div>
 
-      <Card className="p-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 min-w-[220px]">
-            <FontAwesomeIcon
-              icon={faMagnifyingGlass}
-              className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-            />
-            <Input
-              placeholder="LINE名で検索"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 h-9"
-            />
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex items-center justify-between gap-3 px-6 py-4 flex-wrap">
+          <div className="flex items-center gap-3 flex-1">
+            <div className="relative w-72 max-w-full">
+              <Input
+                placeholder="友だち名・システム表示名"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="h-10 pr-9"
+              />
+              <FontAwesomeIcon
+                icon={faMagnifyingGlass}
+                className="size-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+              />
+            </div>
+            <Button className="h-10 px-6 bg-blue-500 hover:bg-blue-600 text-white font-bold">
+              絞込み
+            </Button>
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <FontAwesomeIcon icon={faFilter} className="size-3" />
-            タグ
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setMode("hidden")}
+              className={cn(
+                "h-10 px-5 font-bold text-white",
+                mode === "hidden"
+                  ? "bg-zinc-600 hover:bg-zinc-700"
+                  : "bg-zinc-500 hover:bg-zinc-600"
+              )}
+            >
+              非表示中の友だち
+            </Button>
+            <Button
+              onClick={() => setMode("blocked")}
+              className={cn(
+                "h-10 px-5 font-bold text-white",
+                mode === "blocked"
+                  ? "bg-red-600 hover:bg-red-700"
+                  : "bg-red-500 hover:bg-red-600"
+              )}
+            >
+              <FontAwesomeIcon icon={faBan} className="size-3.5" />
+              ブロックされた友だち
+            </Button>
+            <Button
+              onClick={() => setMode("blockedBy")}
+              variant="outline"
+              className={cn(
+                "h-10 px-5 font-bold border-2",
+                mode === "blockedBy"
+                  ? "border-red-500 text-red-600 bg-red-50 dark:bg-red-950/30"
+                  : "border-red-300 text-red-600 hover:bg-red-50/40 dark:hover:bg-red-950/20"
+              )}
+            >
+              <FontAwesomeIcon icon={faHandPaper} className="size-3.5" />
+              ブロックした友だち
+            </Button>
           </div>
-          <Select value={tagFilter} onValueChange={(v) => v && setTagFilter(v)}>
-            <SelectTrigger className="w-40 h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">すべて</SelectItem>
-              {MOCK_TAGS.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={statusFilter}
-            onValueChange={(v) => v && setStatusFilter(v)}
-          >
-            <SelectTrigger className="w-40 h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全状態</SelectItem>
-              <SelectItem value="following">フォロー中のみ</SelectItem>
-              <SelectItem value="blocked">ブロック済のみ</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
-      </Card>
 
-      <Card>
-        {filtered.length === 0 ? (
-          <EmptyState
-            title="該当する友だちがいません"
-            description="検索条件を変えてみてください"
-          />
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[28%]">名前</TableHead>
-                <TableHead>タグ</TableHead>
-                <TableHead>流入経路</TableHead>
-                <TableHead>友だち追加</TableHead>
-                <TableHead>最終接触</TableHead>
-                <TableHead className="w-32 text-right">操作</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((f) => {
-                const tags = MOCK_TAGS.filter((t) => f.tagIds.includes(t.id));
-                return (
-                  <TableRow key={f.id} className="hover:bg-muted/40">
-                    <TableCell>
-                      <div className="flex items-center gap-2.5">
-                        <Avatar className="size-8">
-                          <AvatarImage src={f.pictureUrl} />
-                          <AvatarFallback>
-                            {f.displayName.slice(0, 1)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <div className="text-sm font-medium truncate">
-                            {f.displayName}
-                          </div>
-                          {!f.isFollowing && (
-                            <div className="text-[10px] text-destructive">
-                              ブロック済み
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap items-center gap-1">
-                        {tags.length === 0 ? (
-                          <span className="text-xs text-muted-foreground">
-                            —
-                          </span>
-                        ) : (
-                          tags.map((t) => (
-                            <TagBadge key={t.id} tag={t} size="sm" />
-                          ))
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {f.source}
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground tabular-nums">
-                      {formatDateTime(f.followedAt)}
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground tabular-nums">
-                      {f.lastMessageAt
-                        ? formatRelativeShort(f.lastMessageAt)
-                        : "—"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setTagTargetFriend(f)}
-                        >
-                          <FontAwesomeIcon icon={faPlus} className="size-3" />
-                          タグ
-                        </Button>
-                        <Link
+        <div className="flex items-center justify-between bg-muted/40 px-6 py-3 border-y border-border">
+          <div className="text-sm">
+            検索結果： <span className="font-bold">{filtered.length}人</span>
+          </div>
+          <Button
+            variant="outline"
+            disabled={!clearable}
+            onClick={() => setQuery("")}
+            className="h-9 px-6 bg-muted/60 border-border disabled:opacity-50"
+          >
+            クリア
+          </Button>
+        </div>
+
+        <div className="flex-1 overflow-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-primary sticky top-0">
+              <tr>
+                <th className="px-3 py-3 text-left text-primary-foreground w-28">
+                  <label className="inline-flex items-center gap-2 cursor-pointer">
+                    <span className="font-bold text-xs">全選択</span>
+                    <input
+                      type="checkbox"
+                      checked={allCheckedInView}
+                      onChange={toggleAll}
+                      disabled={filtered.length === 0}
+                      className="size-4 rounded border-white/30 accent-white bg-white/10"
+                      aria-label="すべて選択"
+                    />
+                  </label>
+                </th>
+                <PrimaryHeader label="友だち追加日時" className="w-40" />
+                <PrimaryHeader label="最新メッセージ" className="w-40" />
+                <th className="px-3 py-3 text-left text-primary-foreground font-bold">
+                  LINE登録名
+                </th>
+                <th className="px-3 py-3 text-left text-primary-foreground font-bold">
+                  システム表示名
+                </th>
+                <th className="px-3 py-3 text-left text-primary-foreground font-bold">
+                  メールアドレス
+                </th>
+                <th className="px-3 py-3 text-left text-primary-foreground font-bold w-32">
+                  ステップ配信状況
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-3 py-12 text-sm text-center text-muted-foreground"
+                  >
+                    該当する友だちはいません
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((f) => {
+                  const checked = selectedIds.has(f.id);
+                  return (
+                    <tr
+                      key={f.id}
+                      className={cn(
+                        "border-b border-border hover:bg-muted/30",
+                        checked && "bg-primary/5"
+                      )}
+                    >
+                      <td className="px-3 py-3">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleRow(f.id)}
+                          className="size-4 rounded border-border accent-primary"
+                        />
+                      </td>
+                      <td className="px-3 py-3 text-xs text-muted-foreground tabular-nums">
+                        {formatYmd(f.followedAt)}
+                      </td>
+                      <td className="px-3 py-3 text-xs text-muted-foreground tabular-nums">
+                        {f.lastMessageAt ? formatYmd(f.lastMessageAt) : "—"}
+                      </td>
+                      <td className="px-3 py-3">
+                        <a
                           href="/chat"
-                          className="inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
-                          aria-label="チャットを開く"
+                          className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline"
                         >
-                          <FontAwesomeIcon
-                            icon={faComments}
-                            className="size-3.5"
-                          />
-                        </Link>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        )}
-      </Card>
+                          <Avatar className="size-7">
+                            <AvatarImage src={f.pictureUrl} />
+                            <AvatarFallback>
+                              {f.displayName.slice(0, 1)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium">{f.displayName}</span>
+                        </a>
+                      </td>
+                      <td className="px-3 py-3 text-sm text-muted-foreground">
+                        {f.systemDisplayName ?? "—"}
+                      </td>
+                      <td className="px-3 py-3 text-sm text-muted-foreground">
+                        {f.email ?? "—"}
+                      </td>
+                      <td className="px-3 py-3 text-xs">
+                        {f.scenarioStepLabel ?? "停止中"}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
 
-      <TagAssignDialog
-        friend={tagTargetFriend}
-        onClose={() => setTagTargetFriend(null)}
-      />
+        <div className="flex items-center justify-between px-6 py-3 border-t border-border flex-wrap gap-3">
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" className="size-9" aria-label="前へ">
+              <FontAwesomeIcon
+                icon={faChevronLeft}
+                className="size-3 text-blue-600"
+              />
+            </Button>
+            <Button variant="ghost" size="icon" className="size-9" aria-label="次へ">
+              <FontAwesomeIcon
+                icon={faChevronRight}
+                className="size-3 text-blue-600"
+              />
+            </Button>
+          </div>
+          <div className="text-sm text-muted-foreground tabular-nums">
+            {filtered.length}人中 {filtered.length > 0 ? 1 : 0} -{" "}
+            {filtered.length}人目を表示中
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
-function TagAssignDialog({
-  friend,
-  onClose,
+function PrimaryHeader({
+  label,
+  className,
 }: {
-  friend: MockFriend | null;
-  onClose: () => void;
+  label: string;
+  className?: string;
 }) {
-  const [selected, setSelected] = useState<string[]>([]);
-
-  // モーダルを開くたびに現在のタグを初期化
-  useMemoOnFriendChange(friend, () => {
-    setSelected(friend?.tagIds ?? []);
-  });
-
-  const toggle = (id: string) => {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
-
   return (
-    <Dialog open={!!friend} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>タグを編集</DialogTitle>
-          <DialogDescription>
-            {friend?.displayName} に付与するタグを選択
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-wrap gap-2 py-2">
-          {MOCK_TAGS.map((t) => {
-            const isOn = selected.includes(t.id);
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => toggle(t.id)}
-                className={`inline-flex items-center gap-1 rounded-full border h-7 px-2.5 text-xs transition-colors ${
-                  isOn
-                    ? "bg-primary/10 border-primary/40 text-primary"
-                    : "bg-background border-border text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <span
-                  className="size-1.5 rounded-full"
-                  style={{ backgroundColor: t.color }}
-                />
-                {t.name}
-              </button>
-            );
-          })}
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            キャンセル
-          </Button>
-          <Button onClick={onClose}>保存（モック）</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <th
+      className={cn(
+        "px-3 py-3 text-left font-bold text-primary-foreground cursor-pointer",
+        className
+      )}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        <FontAwesomeIcon icon={faSort} className="size-2.5 text-white/70" />
+      </span>
+    </th>
   );
-}
-
-function useMemoOnFriendChange(
-  friend: MockFriend | null,
-  fn: () => void
-) {
-  useEffect(() => {
-    if (friend) fn();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [friend?.id]);
 }

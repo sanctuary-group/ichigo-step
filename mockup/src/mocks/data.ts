@@ -15,14 +15,28 @@ export type MockTag = {
   id: string;
   name: string;
   color: string; // tailwind-ish hex
+  folderId?: string;
+  actionLabel?: string;
+  capacity?: number | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type MockTagFolder = {
+  id: string;
+  name: string;
+  isSystem?: boolean;
 };
 
 export type MockFriend = {
   id: string;
   channelId: string;
   displayName: string;
+  systemDisplayName?: string;
+  email?: string;
   pictureUrl?: string;
   isFollowing: boolean;
+  isHidden?: boolean;
   followedAt: string;
   source: string; // 流入経路
   tagIds: string[];
@@ -107,13 +121,11 @@ export const MOCK_CURRENT_USER: MockUser = {
   email: "ryu.ichigo20250310@gmail.com",
 };
 
-export const MOCK_TAGS: MockTag[] = [
-  { id: "tag_vip", name: "VIP", color: "#f59e0b" },
-  { id: "tag_lead", name: "見込み客", color: "#10b981" },
-  { id: "tag_customer", name: "既存顧客", color: "#3b82f6" },
-  { id: "tag_event", name: "イベント参加", color: "#8b5cf6" },
-  { id: "tag_cold", name: "休眠", color: "#94a3b8" },
+export const MOCK_TAG_FOLDERS: MockTagFolder[] = [
+  { id: "tagf_default", name: "未分類", isSystem: true },
 ];
+
+export const MOCK_TAGS: MockTag[] = [];
 
 export const MOCK_FRIENDS: MockFriend[] = [
   {
@@ -524,11 +536,20 @@ export type MockAutoReplyFolder = {
 export type MockQrAction = {
   id: string;
   name: string;
-  purpose: string;
+  folderId: string;
+  isActive: boolean;
+  audience: string;
   action: "add_tag" | "start_scenario" | "track_source";
   actionLabel: string;
   scanCount: number;
+  followCount: number;
   createdAt: string;
+};
+
+export type MockQrActionFolder = {
+  id: string;
+  name: string;
+  isSystem?: boolean;
 };
 
 export type MockGreeting = {
@@ -548,6 +569,39 @@ export type MockSendShortcut = {
   keyword: string;
   reply: string;
 };
+
+export type MockFriendFieldFolder = {
+  id: string;
+  name: string;
+  isSystem?: boolean;
+};
+
+export type MockFriendField = {
+  id: string;
+  name: string;
+  folderId: string;
+  fieldType: string;
+  answerCount: number;
+  createdAt: string;
+};
+
+export const MOCK_FRIEND_FIELD_FOLDERS: MockFriendFieldFolder[] = [
+  { id: "fff_default", name: "未分類", isSystem: true },
+  { id: "fff_basic", name: "基本情報" },
+  { id: "fff_address", name: "国内住所" },
+];
+
+export const MOCK_FRIEND_FIELDS: MockFriendField[] = [
+  { id: "ff_b1", name: "氏名", folderId: "fff_basic", fieldType: "テキスト", answerCount: 128, createdAt: "2026-04-01T10:00:00+09:00" },
+  { id: "ff_b2", name: "電話番号", folderId: "fff_basic", fieldType: "電話番号", answerCount: 92, createdAt: "2026-04-01T10:00:00+09:00" },
+  { id: "ff_b3", name: "メールアドレス", folderId: "fff_basic", fieldType: "メール", answerCount: 78, createdAt: "2026-04-02T10:00:00+09:00" },
+  { id: "ff_b4", name: "生年月日", folderId: "fff_basic", fieldType: "日付", answerCount: 56, createdAt: "2026-04-03T10:00:00+09:00" },
+  { id: "ff_a1", name: "郵便番号", folderId: "fff_address", fieldType: "テキスト", answerCount: 64, createdAt: "2026-04-10T10:00:00+09:00" },
+  { id: "ff_a2", name: "都道府県", folderId: "fff_address", fieldType: "選択肢", answerCount: 64, createdAt: "2026-04-10T10:00:00+09:00" },
+  { id: "ff_a3", name: "市区町村", folderId: "fff_address", fieldType: "テキスト", answerCount: 62, createdAt: "2026-04-10T10:00:00+09:00" },
+  { id: "ff_a4", name: "番地・建物名", folderId: "fff_address", fieldType: "テキスト", answerCount: 60, createdAt: "2026-04-11T10:00:00+09:00" },
+  { id: "ff_a5", name: "電話番号（自宅）", folderId: "fff_address", fieldType: "電話番号", answerCount: 24, createdAt: "2026-04-12T10:00:00+09:00" },
+];
 
 export const MOCK_CHAT_STATUSES: MockChatStatus[] = [
   { id: "cs_1", name: "見込みあり", color: "#f59e0b" },
@@ -653,44 +707,11 @@ export const MOCK_AUTO_REPLY_FOLDERS: MockAutoReplyFolder[] = [
 
 export const MOCK_AUTO_REPLIES: MockAutoReply[] = [];
 
-export const MOCK_QR_ACTIONS: MockQrAction[] = [
-  {
-    id: "qr_1",
-    name: "QR広告A（駅前掲示）",
-    purpose: "オフライン広告からの流入計測",
-    action: "add_tag",
-    actionLabel: "タグ付与: 見込み客",
-    scanCount: 87,
-    createdAt: "2026-04-10T10:00:00+09:00",
-  },
-  {
-    id: "qr_2",
-    name: "イベント受付QR",
-    purpose: "イベント来場者に配布",
-    action: "start_scenario",
-    actionLabel: "シナリオ開始: イベント参加者フォロー",
-    scanCount: 142,
-    createdAt: "2026-05-01T09:00:00+09:00",
-  },
-  {
-    id: "qr_3",
-    name: "ショップカードQR",
-    purpose: "店内に常設",
-    action: "track_source",
-    actionLabel: "流入経路記録: ショップカード",
-    scanCount: 56,
-    createdAt: "2026-03-01T10:00:00+09:00",
-  },
-  {
-    id: "qr_4",
-    name: "Instagramプロフィール",
-    purpose: "Instagram bio から誘導",
-    action: "add_tag",
-    actionLabel: "タグ付与: Instagram流入",
-    scanCount: 234,
-    createdAt: "2026-04-20T10:00:00+09:00",
-  },
+export const MOCK_QR_ACTION_FOLDERS: MockQrActionFolder[] = [
+  { id: "qrf_default", name: "未分類", isSystem: true },
 ];
+
+export const MOCK_QR_ACTIONS: MockQrAction[] = [];
 
 export const MOCK_GREETING: MockGreeting = {
   isActive: true,

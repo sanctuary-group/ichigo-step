@@ -13,6 +13,10 @@ import {
   faDatabase,
   faGear,
   faListCheck,
+  faTag,
+  faAddressCard,
+  faUsers,
+  faFileCsv,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
@@ -78,7 +82,25 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "フォーム作成", href: "/forms", icon: faRectangleList },
       { label: "自動応答", href: "/auto-replies", icon: faRobot },
       { label: "QRコードアクション", href: "/qr-actions", icon: faQrcode },
-      { label: "データ管理", href: "/data-management", icon: faDatabase },
+      {
+        label: "データ管理",
+        href: "/data-management",
+        icon: faDatabase,
+        children: [
+          { label: "タグ管理", href: "/tags", icon: faTag },
+          {
+            label: "友だち情報管理",
+            href: "/data-management/friend-fields",
+            icon: faAddressCard,
+          },
+          { label: "友だちリスト", href: "/friends", icon: faUsers },
+          {
+            label: "CSV管理",
+            href: "/data-management/csv",
+            icon: faFileCsv,
+          },
+        ],
+      },
     ],
   },
 ];
