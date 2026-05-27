@@ -44,6 +44,8 @@ Route::middleware('auth')->group(function () {
         ->name('friends.update');
     Route::patch('friends/{friend}/hidden', [FriendController::class, 'toggleHidden'])
         ->name('friends.toggleHidden');
+    Route::patch('friends/{friend}/read', [FriendController::class, 'toggleRead'])
+        ->name('friends.toggleRead');
     Route::post('friends/{friend}/refresh-profile', [FriendController::class, 'refreshProfile'])
         ->name('friends.refreshProfile');
 

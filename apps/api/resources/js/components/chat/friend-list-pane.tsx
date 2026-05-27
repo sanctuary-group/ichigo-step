@@ -8,17 +8,36 @@ import {
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { FriendListItem } from "@/components/chat/friend-list-item";
 import { EmptyState } from "@/components/empty-state";
 import type { Friend } from "@/types/chat";
 
-const FILTER_LABELS: Record<string, string> = {
-    all: "全ての友だち（非表示除く）",
-    unread: "未読のみ",
-    following: "フォロー中のみ",
-};
+type Filter =
+    | "all"
+    | "unread"
+    | "read"
+    | "hidden"
+    | "scheduled"
+    | "group";
 
-type Filter = "all" | "unread" | "following";
+const FILTER_OPTIONS: { value: Filter; label: string; disabled?: boolean }[] = [
+    { value: "all", label: "全ての友だち（非表示除く）" },
+    { value: "unread", label: "未確認" },
+    { value: "read", label: "確認済み" },
+    { value: "hidden", label: "非表示中" },
+    { value: "scheduled", label: "送信予約中の友だち", disabled: true },
+    { value: "group", label: "グループ", disabled: true },
+];
+
+const FILTER_LABELS: Record<Filter, string> = Object.fromEntries(
+    FILTER_OPTIONS.map((o) => [o.value, o.label]),
+) as Record<Filter, string>;
 
 export function FriendListPane({
     friends,
@@ -35,10 +54,28 @@ export function FriendListPane({
     const [filter, setFilter] = useState<Filter>("all");
 
     const visibleFriends = useMemo<Friend[]>(() => {
-        let list = friends.filter((f) => !f.is_hidden);
-        if (filter === "unread") list = list.filter((f) => f.unread_count > 0);
-        if (filter === "following")
-            list = list.filter((f) => f.is_following);
+        let list: Friend[];
+        switch (filter) {
+            case "hidden":
+                list = friends.filter((f) => f.is_hidden);
+                break;
+            case "unread":
+                list = friends.filter(
+                    (f) => !f.is_hidden && f.unread_count > 0,
+                );
+                break;
+            case "read":
+                list = friends.filter(
+                    (f) => !f.is_hidden && f.unread_count === 0,
+                );
+                break;
+            case "scheduled":
+            case "group":
+                list = [];
+                break;
+            default:
+                list = friends.filter((f) => !f.is_hidden);
+        }
         if (query.trim()) {
             const q = query.trim().toLowerCase();
             list = list.filter((f) => {
@@ -56,28 +93,44 @@ export function FriendListPane({
         >
             <div className="px-3 pt-3 pb-2 space-y-2">
                 <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 justify-between h-9 rounded-full"
-                        onClick={() => {
-                            setFilter(
-                                filter === "all"
-                                    ? "unread"
-                                    : filter === "unread"
-                                        ? "following"
-                                        : "all",
-                            );
-                        }}
-                    >
-                        <span className="truncate text-xs">
-                            {FILTER_LABELS[filter]}
-                        </span>
-                        <FontAwesomeIcon
-                            icon={faChevronDown}
-                            className="size-3 text-muted-foreground"
-                        />
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger
+                            render={
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1 justify-between h-9 rounded-full"
+                                />
+                            }
+                        >
+                            <span className="truncate text-xs">
+                                {FILTER_LABELS[filter]}
+                            </span>
+                            <FontAwesomeIcon
+                                icon={faChevronDown}
+                                className="size-3 text-muted-foreground"
+                            />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                            align="start"
+                            className="w-60"
+                        >
+                            {FILTER_OPTIONS.map((opt) => (
+                                <DropdownMenuItem
+                                    key={opt.value}
+                                    disabled={opt.disabled}
+                                    onClick={() => setFilter(opt.value)}
+                                    className={
+                                        filter === opt.value
+                                            ? "bg-muted font-medium"
+                                            : ""
+                                    }
+                                >
+                                    {opt.label}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button
                         variant="outline"
                         className="rounded-full size-9 shrink-0 p-0"

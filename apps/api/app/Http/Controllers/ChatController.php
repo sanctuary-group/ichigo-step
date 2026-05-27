@@ -29,11 +29,6 @@ class ChatController extends Controller
                 ->get()
             : collect();
 
-        if ($selectedFriend && $selectedFriend->unread_count > 0) {
-            Friend::where('id', $selectedFriend->id)->update(['unread_count' => 0]);
-            $selectedFriend->unread_count = 0;
-        }
-
         return Inertia::render('Chat/Index', [
             'friends' => $friends,
             'selectedFriend' => $selectedFriend,

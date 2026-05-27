@@ -57,11 +57,13 @@ export function ChatBubble({ message }: { message: Message }) {
                         [ボタン操作] {message.content}
                     </div>
                 )}
-                {icon && (
+                {message.message_type === "image" && (
+                    <ImageBubble content={message.content} />
+                )}
+                {icon && message.message_type !== "image" && (
                     <div className="flex items-center gap-2 text-muted-foreground">
                         <FontAwesomeIcon icon={icon} className="size-4" />
                         <span>
-                            {message.message_type === "image" && "画像"}
                             {message.message_type === "video" && "動画"}
                             {message.message_type === "audio" && "音声"}
                             {message.message_type === "file" && "ファイル"}
@@ -75,5 +77,44 @@ export function ChatBubble({ message }: { message: Message }) {
                 {formatTime(message.created_at)}
             </div>
         </div>
+    );
+}
+
+function ImageBubble({ content }: { content: string }) {
+    let url: string | null = null;
+    try {
+        const parsed = JSON.parse(content);
+        url =
+            parsed.originalContentUrl ??
+            parsed.previewImageUrl ??
+            parsed.preview ??
+            null;
+    } catch {
+        url = content || null;
+    }
+
+    if (!url) {
+        return (
+            <div className="flex items-center gap-2 text-muted-foreground">
+                <FontAwesomeIcon icon={faImage} className="size-4" />
+                <span>画像</span>
+            </div>
+        );
+    }
+
+    return (
+        <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block -mx-2 -my-1"
+        >
+            <img
+                src={url}
+                alt="画像"
+                className="max-w-xs max-h-64 rounded-lg object-cover"
+                loading="lazy"
+            />
+        </a>
     );
 }

@@ -61,6 +61,15 @@ class FriendController extends Controller
         return back(303);
     }
 
+    public function toggleRead(Friend $friend): RedirectResponse
+    {
+        $friend->forceFill([
+            'unread_count' => $friend->unread_count > 0 ? 0 : 1,
+        ])->save();
+
+        return back(303);
+    }
+
     public function update(UpdateFriendRequest $request, Friend $friend): RedirectResponse
     {
         $friend->update($request->validated());

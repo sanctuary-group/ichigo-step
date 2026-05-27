@@ -1,15 +1,22 @@
-import { useForm } from "@inertiajs/react";
+import { router, useForm } from "@inertiajs/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faPaperclip,
     faEnvelope,
+    faEnvelopeOpen,
     faFaceSmile,
     faPaperPlane,
     faChevronLeft,
     faCircleInfo,
     faComments,
+    faXmark,
 } from "@fortawesome/free-solid-svg-icons";
-import { FormEvent, useEffect, useRef } from "react";
+import {
+    FormEvent,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -17,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { ChatBubble } from "@/components/chat/chat-bubble";
 import { EmptyState } from "@/components/empty-state";
 import { friendDisplayName } from "@/lib/friend";
+import { cn } from "@/lib/utils";
 import { formatDateLabel } from "@/lib/time";
 import type { Friend, Message } from "@/types/chat";
 
@@ -126,77 +134,192 @@ export function ChatThreadPane({
 }
 
 function Composer({ friend }: { friend: Friend }) {
-    const form = useForm({ content: "" });
+    const form = useForm<{ content: string; image: File | null }>({
+        content: "",
+        image: null,
+    });
     const inputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [emojiOpen, setEmojiOpen] = useState(false);
 
     useEffect(() => {
         form.clearErrors();
-        form.setData("content", "");
+        form.setData({ content: "", image: null });
+        setImagePreview(null);
+        setEmojiOpen(false);
     }, [friend.id]);
+
+    useEffect(() => {
+        if (!emojiOpen) return;
+        const handler = (e: MouseEvent) => {
+            const target = e.target as Node;
+            if (!document.getElementById("emoji-popover")?.contains(target)
+                && !document.getElementById("emoji-trigger")?.contains(target)) {
+                setEmojiOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [emojiOpen]);
+
+    const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (imagePreview) URL.revokeObjectURL(imagePreview);
+        setImagePreview(URL.createObjectURL(file));
+        form.setData("image", file);
+    };
+
+    const clearImage = () => {
+        if (imagePreview) URL.revokeObjectURL(imagePreview);
+        setImagePreview(null);
+        form.setData("image", null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
 
     const onSubmit = (e: FormEvent) => {
         e.preventDefault();
-        if (! form.data.content.trim() || form.processing) return;
+        const hasImage = !!form.data.image;
+        const hasText = form.data.content.trim().length > 0;
+        if (!hasImage && !hasText) return;
+        if (form.processing) return;
+
         form.post(`/chat/${friend.id}/messages`, {
             preserveScroll: true,
             preserveState: true,
+            forceFormData: true,
             onSuccess: () => {
-                form.reset("content");
+                form.reset();
+                clearImage();
                 inputRef.current?.focus();
             },
         });
     };
 
-    const canSend = friend.is_following && form.data.content.trim().length > 0 && ! form.processing;
+    const insertEmoji = (emoji: string) => {
+        form.setData("content", form.data.content + emoji);
+        inputRef.current?.focus();
+    };
+
+    const toggleRead = () => {
+        router.patch(
+            `/friends/${friend.id}/read`,
+            {},
+            { preserveScroll: true, preserveState: true },
+        );
+    };
+
+    const canSend =
+        friend.is_following &&
+        !form.processing &&
+        (form.data.content.trim().length > 0 || !!form.data.image);
+    const isUnread = friend.unread_count > 0;
 
     return (
-        <div className="border-t border-border bg-background px-4 py-3 shrink-0">
-            <form onSubmit={onSubmit} className="flex flex-col gap-2 max-w-3xl mx-auto">
+        <div className="border-t border-border bg-background px-4 py-3 shrink-0 relative">
+            {imagePreview && (
+                <div className="max-w-3xl mx-auto mb-2 flex items-center gap-2 p-2 rounded-md bg-muted/40">
+                    <img
+                        src={imagePreview}
+                        alt="送信予定の画像"
+                        className="size-16 rounded object-cover"
+                    />
+                    <div className="flex-1 text-xs text-muted-foreground">
+                        画像を送信します
+                    </div>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        className="size-7 p-0 text-muted-foreground"
+                        onClick={clearImage}
+                        aria-label="画像を破棄"
+                    >
+                        <FontAwesomeIcon icon={faXmark} className="size-3.5" />
+                    </Button>
+                </div>
+            )}
+
+            <form
+                onSubmit={onSubmit}
+                className="flex flex-col gap-2 max-w-3xl mx-auto"
+            >
                 <div className="flex items-center gap-1.5">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        className="rounded-full text-muted-foreground size-9 p-0"
-                        aria-label="ファイル添付"
-                        disabled
-                    >
-                        <FontAwesomeIcon icon={faPaperclip} className="size-4" />
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        className="rounded-full text-muted-foreground size-9 p-0"
-                        aria-label="テンプレート"
-                        disabled
-                    >
-                        <FontAwesomeIcon icon={faEnvelope} className="size-4" />
-                    </Button>
-                    <Input
-                        ref={inputRef}
-                        placeholder={
-                            friend.is_following
-                                ? "メッセージを入力してください"
-                                : "ブロック中のため送信できません"
-                        }
-                        className="flex-1 h-10 rounded-full bg-muted/40 border-transparent"
-                        value={form.data.content}
-                        onChange={(e) => form.setData("content", e.target.value)}
-                        disabled={! friend.is_following || form.processing}
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg"
+                        className="hidden"
+                        onChange={onFileChange}
                     />
                     <Button
                         type="button"
                         variant="ghost"
-                        className="rounded-full text-muted-foreground size-9 p-0"
-                        aria-label="絵文字"
-                        disabled
+                        className="rounded-full text-muted-foreground hover:text-foreground size-9 p-0"
+                        aria-label="画像を添付"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={!friend.is_following || form.processing}
                     >
-                        <FontAwesomeIcon icon={faFaceSmile} className="size-4" />
+                        <FontAwesomeIcon
+                            icon={faPaperclip}
+                            className="size-4"
+                        />
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        className={cn(
+                            "rounded-full size-9 p-0",
+                            isUnread
+                                ? "text-primary hover:text-primary"
+                                : "text-muted-foreground hover:text-foreground",
+                        )}
+                        aria-label={isUnread ? "既読にする" : "未読にする"}
+                        title={isUnread ? "既読にする" : "未読にする"}
+                        onClick={toggleRead}
+                    >
+                        <FontAwesomeIcon
+                            icon={isUnread ? faEnvelope : faEnvelopeOpen}
+                            className="size-4"
+                        />
+                    </Button>
+                    <Input
+                        ref={inputRef}
+                        placeholder={
+                            !friend.is_following
+                                ? "ブロック中のため送信できません"
+                                : imagePreview
+                                    ? "コメント（画像と同送できません）"
+                                    : "メッセージを入力してください"
+                        }
+                        className="flex-1 h-10 rounded-full bg-muted/40 border-transparent"
+                        value={form.data.content}
+                        onChange={(e) => form.setData("content", e.target.value)}
+                        disabled={
+                            !friend.is_following ||
+                            form.processing ||
+                            !!imagePreview
+                        }
+                    />
+                    <Button
+                        id="emoji-trigger"
+                        type="button"
+                        variant="ghost"
+                        className="rounded-full text-muted-foreground hover:text-foreground size-9 p-0"
+                        aria-label="絵文字"
+                        onClick={() => setEmojiOpen((v) => !v)}
+                        disabled={!friend.is_following || form.processing}
+                    >
+                        <FontAwesomeIcon
+                            icon={faFaceSmile}
+                            className="size-4"
+                        />
                     </Button>
                     <Button
                         type="submit"
                         className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 size-9 p-0"
                         aria-label="送信"
-                        disabled={! canSend}
+                        disabled={!canSend}
                     >
                         <FontAwesomeIcon
                             icon={faPaperPlane}
@@ -209,7 +332,48 @@ function Composer({ friend }: { friend: Friend }) {
                         {form.errors.content}
                     </div>
                 )}
+                {form.errors.image && (
+                    <div className="text-[11px] text-destructive text-center">
+                        {form.errors.image}
+                    </div>
+                )}
             </form>
+
+            {emojiOpen && (
+                <EmojiPopover onSelect={insertEmoji} />
+            )}
+        </div>
+    );
+}
+
+const EMOJIS = [
+    "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣",
+    "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰",
+    "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜",
+    "🤔", "🤨", "😐", "😑", "😶", "🙄", "😏", "😣",
+    "😢", "😭", "😤", "😠", "😡", "🥺", "😱", "😨",
+    "👍", "👎", "👏", "🙏", "💪", "🙌", "👌", "✌️",
+    "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "💔",
+    "🎉", "🎊", "🎁", "🎂", "🍰", "☕", "🍻", "🌸",
+    "⭐", "✨", "💡", "🔥", "💯", "✅", "❌", "❓",
+];
+
+function EmojiPopover({ onSelect }: { onSelect: (emoji: string) => void }) {
+    return (
+        <div
+            id="emoji-popover"
+            className="absolute bottom-16 right-12 z-40 bg-popover border border-border rounded-lg shadow-lg p-2 grid grid-cols-9 gap-0.5"
+        >
+            {EMOJIS.map((e) => (
+                <button
+                    key={e}
+                    type="button"
+                    onClick={() => onSelect(e)}
+                    className="size-8 hover:bg-muted rounded text-lg"
+                >
+                    {e}
+                </button>
+            ))}
         </div>
     );
 }
