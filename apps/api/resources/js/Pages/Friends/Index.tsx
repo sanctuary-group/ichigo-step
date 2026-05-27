@@ -10,9 +10,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FormEvent, useState } from "react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FriendAvatar } from "@/components/friend-avatar";
 import { TagBadge } from "@/components/tag-badge";
 import { DashboardLayout } from "@/Layouts/DashboardLayout";
 import { friendDisplayName } from "@/lib/friend";
@@ -240,20 +240,10 @@ export default function FriendsIndex() {
                                                     href={`/chat?friend=${f.id}`}
                                                     className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline"
                                                 >
-                                                    <Avatar className="size-7">
-                                                        {f.picture_url && (
-                                                            <AvatarImage
-                                                                src={
-                                                                    f.picture_url
-                                                                }
-                                                            />
-                                                        )}
-                                                        <AvatarFallback>
-                                                            {friendDisplayName(
-                                                                f,
-                                                            ).slice(0, 1)}
-                                                        </AvatarFallback>
-                                                    </Avatar>
+                                                    <FriendAvatar
+                                                        friend={f}
+                                                        className="size-7"
+                                                    />
                                                     <span className="font-medium">
                                                         {friendDisplayName(f)}
                                                     </span>

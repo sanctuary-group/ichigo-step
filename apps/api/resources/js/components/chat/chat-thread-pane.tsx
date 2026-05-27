@@ -18,11 +18,11 @@ import {
     useState,
 } from "react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChatBubble } from "@/components/chat/chat-bubble";
 import { EmptyState } from "@/components/empty-state";
+import { FriendAvatar } from "@/components/friend-avatar";
 import { friendDisplayName } from "@/lib/friend";
 import { cn } from "@/lib/utils";
 import { formatDateLabel } from "@/lib/time";
@@ -72,12 +72,7 @@ export function ChatThreadPane({
                 >
                     <FontAwesomeIcon icon={faChevronLeft} className="size-4" />
                 </Button>
-                <Avatar className="size-8">
-                    {friend.picture_url && (
-                        <AvatarImage src={friend.picture_url} alt={name} />
-                    )}
-                    <AvatarFallback>{name.slice(0, 1)}</AvatarFallback>
-                </Avatar>
+                <FriendAvatar friend={friend} className="size-8" />
                 <div className="font-medium text-sm text-primary truncate min-w-0">
                     {name}
                 </div>

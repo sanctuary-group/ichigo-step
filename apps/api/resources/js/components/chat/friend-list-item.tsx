@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { FriendAvatar } from "@/components/friend-avatar";
 import { cn } from "@/lib/utils";
 import { friendDisplayName } from "@/lib/friend";
 import { formatRelativeShort } from "@/lib/time";
@@ -23,12 +23,7 @@ export function FriendListItem({
                 active ? "bg-primary/5" : "hover:bg-muted/50",
             )}
         >
-            <Avatar className="size-11 shrink-0">
-                {friend.picture_url && (
-                    <AvatarImage src={friend.picture_url} alt={name} />
-                )}
-                <AvatarFallback>{name.slice(0, 1)}</AvatarFallback>
-            </Avatar>
+            <FriendAvatar friend={friend} className="size-11 shrink-0" />
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                     <div className="text-sm font-medium truncate flex-1">
