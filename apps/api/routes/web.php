@@ -3,9 +3,11 @@
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\FriendTagController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\Settings\ChannelController;
+use App\Http\Controllers\TagController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -33,6 +35,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/chat/{friend}/messages', [MessageController::class, 'store'])
         ->name('chat.messages.store');
 
+    Route::resource('tags', TagController::class)
+        ->only(['index', 'store', 'update', 'destroy']);
+
+    Route::post('friends/{friend}/tags/{tag}', [FriendTagController::class, 'attach'])
+        ->name('friends.tags.attach');
+    Route::delete('friends/{friend}/tags/{tag}', [FriendTagController::class, 'detach'])
+        ->name('friends.tags.detach');
+
     // サイドバー項目の placeholder（B-3b 以降で順次実装）
     $placeholderRoutes = [
         '/chat/settings' => 'チャット設定',
@@ -48,7 +58,6 @@ Route::middleware('auth')->group(function () {
         '/auto-replies' => '自動応答',
         '/qr-actions' => 'QR コードアクション',
         '/data-management' => 'データ管理',
-        '/tags' => 'タグ管理',
         '/data-management/friend-fields' => '友だち情報管理',
         '/friends' => '友だちリスト',
         '/data-management/csv' => 'CSV 管理',

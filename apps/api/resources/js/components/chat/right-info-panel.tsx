@@ -1,3 +1,4 @@
+import { router, usePage } from "@inertiajs/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faDatabase,
@@ -5,7 +6,10 @@ import {
     faTag as faTagSolid,
     faNoteSticky,
     faChevronLeft,
+    faPlus,
+    faXmark,
 } from "@fortawesome/free-solid-svg-icons";
+import { useState } from "react";
 
 import {
     Tabs,
@@ -14,9 +18,15 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import { TagBadge } from "@/components/tag-badge";
 import { formatDateTime } from "@/lib/time";
-import type { Friend } from "@/types/chat";
+import type { Friend, Tag } from "@/types/chat";
 
 export function RightInfoPanel({
     friend,
@@ -27,8 +37,32 @@ export function RightInfoPanel({
     mobileVisible?: boolean;
     onBack?: () => void;
 }) {
-    const tags = friend.tags ?? [];
+    const { props } = usePage<{ tags?: Tag[] }>();
+    const allTags = props.tags ?? [];
+    const attachedTags = friend.tags ?? [];
+    const attachedIds = new Set(attachedTags.map((t) => t.id));
+    const availableTags = allTags.filter((t) => !attachedIds.has(t.id));
+    const [tagDialogOpen, setTagDialogOpen] = useState(false);
     const name = friend.display_name ?? "(名前未取得)";
+
+    const attachTag = (tag: Tag) => {
+        router.post(
+            `/friends/${friend.id}/tags/${tag.id}`,
+            {},
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => setTagDialogOpen(false),
+            },
+        );
+    };
+
+    const detachTag = (tag: Tag) => {
+        router.delete(`/friends/${friend.id}/tags/${tag.id}`, {
+            preserveScroll: true,
+            preserveState: true,
+        });
+    };
 
     return (
         <aside
@@ -116,21 +150,36 @@ export function RightInfoPanel({
                     <TabsContent value="tags" className="space-y-3">
                         <SectionTitle>タグ</SectionTitle>
                         <div className="flex flex-wrap gap-1.5">
-                            {tags.length === 0 ? (
+                            {attachedTags.length === 0 ? (
                                 <div className="text-xs text-muted-foreground">
                                     タグはまだありません
                                 </div>
                             ) : (
-                                tags.map((t) => <TagBadge key={t.id} tag={t} />)
+                                attachedTags.map((t) => (
+                                    <button
+                                        key={t.id}
+                                        type="button"
+                                        onClick={() => detachTag(t)}
+                                        className="group inline-flex items-center gap-1"
+                                        aria-label={`タグ ${t.name} を外す`}
+                                    >
+                                        <TagBadge tag={t} />
+                                        <FontAwesomeIcon
+                                            icon={faXmark}
+                                            className="size-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                                        />
+                                    </button>
+                                ))
                             )}
                         </div>
                         <Button
                             variant="outline"
                             size="sm"
                             className="w-full"
-                            disabled
+                            onClick={() => setTagDialogOpen(true)}
                         >
-                            タグを追加（次フェーズ）
+                            <FontAwesomeIcon icon={faPlus} className="size-3" />
+                            タグを追加
                         </Button>
                     </TabsContent>
 
@@ -142,6 +191,43 @@ export function RightInfoPanel({
                     </TabsContent>
                 </div>
             </Tabs>
+
+            <Dialog open={tagDialogOpen} onOpenChange={setTagDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>タグを追加</DialogTitle>
+                    </DialogHeader>
+                    {allTags.length === 0 ? (
+                        <div className="text-sm text-muted-foreground">
+                            タグがまだ作成されていません。先に
+                            <a
+                                href="/tags"
+                                className="text-blue-600 dark:text-blue-400 underline mx-1"
+                            >
+                                タグ管理
+                            </a>
+                            で作成してください。
+                        </div>
+                    ) : availableTags.length === 0 ? (
+                        <div className="text-sm text-muted-foreground">
+                            すべてのタグが付与済みです。
+                        </div>
+                    ) : (
+                        <div className="flex flex-wrap gap-2">
+                            {availableTags.map((t) => (
+                                <button
+                                    key={t.id}
+                                    type="button"
+                                    onClick={() => attachTag(t)}
+                                    className="hover:opacity-80 transition-opacity"
+                                >
+                                    <TagBadge tag={t} />
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </aside>
     );
 }
