@@ -69,7 +69,11 @@ export function SidebarContent({
 
   return (
     <>
-      <div className="flex items-center gap-2 px-5 h-16">
+      <Link
+        href="/"
+        onClick={onNavigate}
+        className="flex items-center gap-2 px-5 h-16 hover:bg-sidebar-accent/40 transition-colors"
+      >
         <div className="grid place-items-center size-9 rounded-xl bg-primary/10">
           <StrawberryIcon className="size-5" />
         </div>
@@ -81,7 +85,7 @@ export function SidebarContent({
             LINE MARKETING
           </div>
         </div>
-      </div>
+      </Link>
 
       <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-6">
         {NAV_GROUPS.map((group) => (
