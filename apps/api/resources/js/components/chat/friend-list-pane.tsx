@@ -41,9 +41,11 @@ export function FriendListPane({
             list = list.filter((f) => f.is_following);
         if (query.trim()) {
             const q = query.trim().toLowerCase();
-            list = list.filter((f) =>
-                (f.display_name ?? "").toLowerCase().includes(q),
-            );
+            list = list.filter((f) => {
+                const a = (f.display_name ?? "").toLowerCase();
+                const b = (f.system_display_name ?? "").toLowerCase();
+                return a.includes(q) || b.includes(q);
+            });
         }
         return list;
     }, [friends, query, filter]);
@@ -90,7 +92,7 @@ export function FriendListPane({
                         className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
                     />
                     <Input
-                        placeholder="LINE名"
+                        placeholder="LINE名 / システム表示名"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         className="pl-9 h-9 rounded-full bg-muted/40 border-transparent"

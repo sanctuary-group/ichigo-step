@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TagBadge } from "@/components/tag-badge";
 import { DashboardLayout } from "@/Layouts/DashboardLayout";
+import { friendDisplayName } from "@/lib/friend";
 import { cn } from "@/lib/utils";
 import type { Friend, Tag } from "@/types/chat";
 
@@ -107,7 +108,7 @@ export default function FriendsIndex() {
                         >
                             <div className="relative w-72 max-w-full">
                                 <Input
-                                    placeholder="LINE 表示名で検索"
+                                    placeholder="LINE 名 / システム表示名で検索"
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                     className="h-10 pr-9"
@@ -248,15 +249,13 @@ export default function FriendsIndex() {
                                                             />
                                                         )}
                                                         <AvatarFallback>
-                                                            {(
-                                                                f.display_name ??
-                                                                "?"
+                                                            {friendDisplayName(
+                                                                f,
                                                             ).slice(0, 1)}
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <span className="font-medium">
-                                                        {f.display_name ??
-                                                            "(名前未取得)"}
+                                                        {friendDisplayName(f)}
                                                     </span>
                                                 </Link>
                                             </td>

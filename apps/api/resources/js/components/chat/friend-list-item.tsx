@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { friendDisplayName } from "@/lib/friend";
 import { formatRelativeShort } from "@/lib/time";
 import type { Friend } from "@/types/chat";
 
@@ -12,7 +13,7 @@ export function FriendListItem({
     active?: boolean;
     onClick?: () => void;
 }) {
-    const name = friend.display_name ?? "(名前未取得)";
+    const name = friendDisplayName(friend);
     return (
         <button
             type="button"

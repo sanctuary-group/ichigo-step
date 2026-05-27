@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChatBubble } from "@/components/chat/chat-bubble";
 import { EmptyState } from "@/components/empty-state";
+import { friendDisplayName } from "@/lib/friend";
 import { formatDateLabel } from "@/lib/time";
 import type { Friend, Message } from "@/types/chat";
 
@@ -48,7 +49,7 @@ export function ChatThreadPane({
         );
     }
 
-    const name = friend.display_name ?? "(名前未取得)";
+    const name = friendDisplayName(friend);
 
     return (
         <div

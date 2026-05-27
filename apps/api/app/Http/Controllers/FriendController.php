@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Friend\UpdateFriendRequest;
 use App\Models\Friend;
+use App\Services\Line\LineClient;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class FriendController extends Controller
 {
@@ -25,7 +28,10 @@ class FriendController extends Controller
         };
 
         if ($search !== '') {
-            $query->where('display_name', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('display_name', 'like', "%{$search}%")
+                    ->orWhere('system_display_name', 'like', "%{$search}%");
+            });
         }
 
         if ($tagId) {
@@ -53,5 +59,30 @@ class FriendController extends Controller
         $friend->forceFill(['is_hidden' => ! $friend->is_hidden])->save();
 
         return back(303);
+    }
+
+    public function update(UpdateFriendRequest $request, Friend $friend): RedirectResponse
+    {
+        $friend->update($request->validated());
+
+        return back()->with('flash.success', '友だち情報を更新しました');
+    }
+
+    public function refreshProfile(Friend $friend): RedirectResponse
+    {
+        try {
+            $profile = LineClient::forChannel($friend->lineChannel)
+                ->getProfile($friend->line_user_id);
+        } catch (Throwable $e) {
+            return back()->with('flash.error', 'プロフィール取得失敗: '.$e->getMessage());
+        }
+
+        $friend->forceFill([
+            'display_name' => $profile['displayName'] ?? $friend->display_name,
+            'picture_url' => $profile['pictureUrl'] ?? $friend->picture_url,
+            'status_message' => $profile['statusMessage'] ?? $friend->status_message,
+        ])->save();
+
+        return back()->with('flash.success', 'LINE プロフィールを更新しました');
     }
 }

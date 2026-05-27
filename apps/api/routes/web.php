@@ -40,8 +40,12 @@ Route::middleware('auth')->group(function () {
         ->only(['index', 'store', 'update', 'destroy']);
 
     Route::get('friends', [FriendController::class, 'index'])->name('friends.index');
+    Route::patch('friends/{friend}', [FriendController::class, 'update'])
+        ->name('friends.update');
     Route::patch('friends/{friend}/hidden', [FriendController::class, 'toggleHidden'])
         ->name('friends.toggleHidden');
+    Route::post('friends/{friend}/refresh-profile', [FriendController::class, 'refreshProfile'])
+        ->name('friends.refreshProfile');
 
     Route::post('friends/{friend}/tags/{tag}', [FriendTagController::class, 'attach'])
         ->name('friends.tags.attach');
