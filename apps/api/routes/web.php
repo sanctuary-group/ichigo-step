@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
+use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ChatManagementController;
 use App\Http\Controllers\ChatStatusController;
@@ -56,6 +57,15 @@ Route::middleware('auth')->group(function () {
     Route::resource('template-folders', TemplateFolderController::class)
         ->only(['store', 'update', 'destroy']);
 
+    Route::get('broadcasts', [BroadcastController::class, 'index'])->name('broadcasts.index');
+    Route::get('broadcasts/create', [BroadcastController::class, 'create'])->name('broadcasts.create');
+    Route::post('broadcasts', [BroadcastController::class, 'store'])->name('broadcasts.store');
+    Route::get('broadcasts/{broadcast}/edit', [BroadcastController::class, 'edit'])->name('broadcasts.edit');
+    Route::patch('broadcasts/{broadcast}', [BroadcastController::class, 'update'])->name('broadcasts.update');
+    Route::delete('broadcasts/{broadcast}', [BroadcastController::class, 'destroy'])->name('broadcasts.destroy');
+    Route::post('broadcasts/{broadcast}/send-now', [BroadcastController::class, 'sendNow'])->name('broadcasts.sendNow');
+    Route::post('broadcasts/upload-image', [BroadcastController::class, 'uploadImage'])->name('broadcasts.uploadImage');
+
     Route::get('friends', [FriendController::class, 'index'])->name('friends.index');
     Route::patch('friends/{friend}', [FriendController::class, 'update'])
         ->name('friends.update');
@@ -77,7 +87,6 @@ Route::middleware('auth')->group(function () {
 
     // サイドバー項目の placeholder（B-3b 以降で順次実装）
     $placeholderRoutes = [
-        '/broadcasts' => 'メッセージ配信',
         '/scenarios' => 'ステップ配信',
         '/greetings' => 'あいさつメッセージ',
         '/greetings/existing' => 'あいさつメッセージ（既存友だち用）',

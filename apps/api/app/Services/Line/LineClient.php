@@ -48,6 +48,28 @@ class LineClient
     }
 
     /**
+     * Multicast messages to up to 500 LINE users at once.
+     *
+     * @param  array<int, string>  $toUserIds
+     * @param  array<int, array<string, mixed>>  $messages
+     * @return array{request_id: ?string, body: array}
+     */
+    public function multicast(array $toUserIds, array $messages): array
+    {
+        $response = $this->http()
+            ->post(self::BASE_URL.'/v2/bot/message/multicast', [
+                'to' => array_values($toUserIds),
+                'messages' => $messages,
+            ])
+            ->throw();
+
+        return [
+            'request_id' => $response->header('X-Line-Request-Id') ?: null,
+            'body' => $response->json() ?? [],
+        ];
+    }
+
+    /**
      * Reply messages using a reply token (free, no quota).
      *
      * @param  array<int, array<string, mixed>>  $messages
