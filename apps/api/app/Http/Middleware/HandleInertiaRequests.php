@@ -40,6 +40,11 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => fn () => $request->user()?->only(['id', 'name', 'email']),
             ],
+            'channels' => fn () => $request->user()
+                ? \App\Models\LineChannel::where('is_active', true)
+                    ->get(['id', 'name', 'basic_id', 'channel_id', 'is_active'])
+                    ->values()
+                : [],
             'flash' => [
                 'success' => fn () => $request->session()->get('flash.success'),
                 'error' => fn () => $request->session()->get('flash.error'),

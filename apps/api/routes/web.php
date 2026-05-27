@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Settings\ChannelController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -19,9 +21,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [HomeController::class, 'show'])->name('home');
     Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
 
+    Route::resource('settings/channels', ChannelController::class)
+        ->only(['index', 'store', 'update', 'destroy'])
+        ->parameters(['channels' => 'channel'])
+        ->names('settings.channels');
+    Route::post('settings/channels/{channel}/test', [ChannelController::class, 'test'])
+        ->name('settings.channels.test');
+
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat');
+
     // サイドバー項目の placeholder（B-3b 以降で順次実装）
     $placeholderRoutes = [
-        '/chat' => '1:1 チャット',
         '/chat/settings' => 'チャット設定',
         '/chat/management' => 'チャット管理',
         '/templates' => 'テンプレート',
@@ -39,7 +49,6 @@ Route::middleware('auth')->group(function () {
         '/data-management/friend-fields' => '友だち情報管理',
         '/friends' => '友だちリスト',
         '/data-management/csv' => 'CSV 管理',
-        '/settings/channels' => '設定 / LINE 公式アカウント',
         '/settings/profile' => 'マイページ',
         '/settings/members' => 'メンバー管理',
     ];

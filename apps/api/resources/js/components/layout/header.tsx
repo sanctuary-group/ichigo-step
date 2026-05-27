@@ -32,10 +32,22 @@ import {
 import { MobileNavTrigger } from "@/components/layout/mobile-nav-trigger";
 
 type AuthUser = { id: number; name: string; email: string } | null;
+type ChannelSummary = {
+  id: number;
+  name: string;
+  basic_id: string | null;
+  channel_id: string;
+  is_active: boolean;
+};
 
 export function Header() {
-  const { props } = usePage<{ auth: { user: AuthUser } }>();
+  const { props } = usePage<{
+    auth: { user: AuthUser };
+    channels?: ChannelSummary[];
+  }>();
   const user = props.auth?.user ?? null;
+  const channels = props.channels ?? [];
+  const activeChannel = channels[0] ?? null;
   const initial = user?.name?.slice(0, 1) ?? "?";
 
   const handleLogout = () => {
@@ -58,10 +70,20 @@ export function Header() {
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <Avatar className="size-8">
-                <AvatarFallback>?</AvatarFallback>
+                <AvatarFallback>
+                  {activeChannel ? activeChannel.name.slice(0, 1) : "?"}
+                </AvatarFallback>
               </Avatar>
-              <span className="truncate text-sm font-medium text-muted-foreground">
-                LINE 公式アカウント 未連携
+              <span
+                className={
+                  activeChannel
+                    ? "truncate text-sm font-medium text-foreground"
+                    : "truncate text-sm font-medium text-muted-foreground"
+                }
+              >
+                {activeChannel
+                  ? activeChannel.name
+                  : "LINE 公式アカウント 未連携"}
               </span>
             </div>
             <FontAwesomeIcon
@@ -73,15 +95,45 @@ export function Header() {
             <DropdownMenuGroup>
               <DropdownMenuLabel>LINE 公式アカウント</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <div className="px-3 py-3 text-xs text-muted-foreground space-y-2">
-                <div>まだ連携されていません。</div>
-                <Link
-                  href="/settings/channels"
-                  className="inline-block text-blue-600 dark:text-blue-400 underline hover:no-underline"
-                >
-                  設定 / LINE 公式アカウント へ
-                </Link>
-              </div>
+              {channels.length === 0 ? (
+                <div className="px-3 py-3 text-xs text-muted-foreground space-y-2">
+                  <div>まだ連携されていません。</div>
+                  <Link
+                    href="/settings/channels"
+                    className="inline-block text-blue-600 dark:text-blue-400 underline hover:no-underline"
+                  >
+                    設定 / LINE 公式アカウント へ
+                  </Link>
+                </div>
+              ) : (
+                <div className="py-1">
+                  {channels.map((c) => (
+                    <div
+                      key={c.id}
+                      className="flex items-center gap-2 px-3 py-2 text-sm"
+                    >
+                      <Avatar className="size-7">
+                        <AvatarFallback>{c.name.slice(0, 1)}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <div className="truncate font-medium">{c.name}</div>
+                        {c.basic_id && (
+                          <div className="truncate text-xs text-muted-foreground">
+                            {c.basic_id}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <Link
+                    href="/settings/channels"
+                    className="block px-3 py-2 text-xs text-blue-600 dark:text-blue-400 hover:bg-muted"
+                  >
+                    チャネルを管理
+                  </Link>
+                </div>
+              )}
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
