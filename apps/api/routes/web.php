@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\FriendController;
 use App\Http\Controllers\FriendTagController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MessageController;
@@ -38,6 +39,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('tags', TagController::class)
         ->only(['index', 'store', 'update', 'destroy']);
 
+    Route::get('friends', [FriendController::class, 'index'])->name('friends.index');
+    Route::patch('friends/{friend}/hidden', [FriendController::class, 'toggleHidden'])
+        ->name('friends.toggleHidden');
+
     Route::post('friends/{friend}/tags/{tag}', [FriendTagController::class, 'attach'])
         ->name('friends.tags.attach');
     Route::delete('friends/{friend}/tags/{tag}', [FriendTagController::class, 'detach'])
@@ -59,7 +64,6 @@ Route::middleware('auth')->group(function () {
         '/qr-actions' => 'QR コードアクション',
         '/data-management' => 'データ管理',
         '/data-management/friend-fields' => '友だち情報管理',
-        '/friends' => '友だちリスト',
         '/data-management/csv' => 'CSV 管理',
         '/settings/profile' => 'マイページ',
         '/settings/members' => 'メンバー管理',
