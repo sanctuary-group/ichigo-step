@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
   return (
+    <div className="w-full max-w-sm mx-auto">
     <Card className="border-border/60">
       <CardHeader>
         <CardTitle className="text-center">ログイン</CardTitle>
@@ -33,5 +34,6 @@ export default function LoginPage() {
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }
