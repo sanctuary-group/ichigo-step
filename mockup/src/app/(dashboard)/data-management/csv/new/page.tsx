@@ -44,7 +44,7 @@ export default function NewExportCsvPage() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-6">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
       <h1 className="text-lg font-bold tracking-tight">エクスポートデータ作成</h1>
 
       <Section title="書き出し名（管理用）">

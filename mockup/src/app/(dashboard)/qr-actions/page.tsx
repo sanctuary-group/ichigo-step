@@ -96,7 +96,7 @@ export default function QrActionsPage() {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
-      <div className="px-6 lg:px-8 pt-5 pb-3 border-b border-border">
+      <div className="px-4 sm:px-6 lg:px-8 pt-5 pb-3 border-b border-border">
         <h1 className="text-lg font-bold tracking-tight">
           QRコードアクション（流入経路分析）
         </h1>
@@ -105,9 +105,9 @@ export default function QrActionsPage() {
         </p>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
         {folderVisible && (
-          <aside className="w-56 shrink-0 border-r border-border flex flex-col">
+          <aside className="w-full md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-border flex flex-col max-h-[40vh] md:max-h-none">
             <div className="flex items-center gap-2 px-3 py-3 border-b border-border">
               <Button variant="outline" size="sm" className="flex-1 h-9 px-2">
                 <FontAwesomeIcon icon={faFolderPlus} className="size-3" />

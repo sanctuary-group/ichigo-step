@@ -29,7 +29,7 @@ export default function SettingsLayout({
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="max-w-6xl mx-auto p-6 lg:p-8">
+      <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
         <div className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight">設定</h1>
           <p className="text-sm text-muted-foreground mt-1">

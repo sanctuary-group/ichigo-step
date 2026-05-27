@@ -78,7 +78,7 @@ export default function FriendsPage() {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
-      <div className="px-6 lg:px-8 pt-5 pb-3 border-b border-border">
+      <div className="px-4 sm:px-6 lg:px-8 pt-5 pb-3 border-b border-border">
         <h1 className="text-lg font-bold tracking-tight">友だちリスト</h1>
       </div>
 

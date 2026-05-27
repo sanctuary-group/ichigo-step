@@ -23,7 +23,7 @@ export default function DataManagementPage() {
   );
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-6">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">データ管理</h1>
         <p className="text-sm text-muted-foreground mt-1">

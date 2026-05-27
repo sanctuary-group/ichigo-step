@@ -61,7 +61,7 @@ export default function AutoRepliesPage() {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
-      <div className="px-6 lg:px-8 pt-5 pb-3 border-b border-border flex items-start justify-between gap-3">
+      <div className="px-4 sm:px-6 lg:px-8 pt-5 pb-3 border-b border-border flex items-start justify-between gap-3">
         <h1 className="text-lg font-bold tracking-tight">自動応答</h1>
         <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-6 font-bold">
           <FontAwesomeIcon icon={faBookOpen} className="size-3.5" />
@@ -69,8 +69,8 @@ export default function AutoRepliesPage() {
         </Button>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="w-56 shrink-0 border-r border-border flex flex-col">
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+        <aside className="w-full md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-border flex flex-col max-h-[40vh] md:max-h-none">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="text-sm font-bold">フォルダ</div>
             <div className="flex items-center gap-1">

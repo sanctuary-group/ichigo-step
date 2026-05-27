@@ -46,7 +46,7 @@ export default function ChatSettingsPage() {
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col">
-      <div className="px-6 lg:px-8 pt-6 lg:pt-8 pb-4">
+      <div className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8 pb-4">
         <h1 className="text-2xl font-bold tracking-tight">1:1チャット設定</h1>
       </div>
 
@@ -74,7 +74,7 @@ export default function ChatSettingsPage() {
           </ul>
         </aside>
 
-        <section className="flex-1 overflow-y-auto p-6 lg:p-8">
+        <section className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           {active === "statuses" && <StatusesPanel />}
           {active === "auto-read" && <AutoReadPanel />}
           {active === "shortcuts" && <ShortcutsPanel />}

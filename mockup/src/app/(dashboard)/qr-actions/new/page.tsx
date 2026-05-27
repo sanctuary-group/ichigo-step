@@ -63,7 +63,7 @@ export default function NewQrActionPage() {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
-      <div className="px-6 lg:px-8 pt-4 pb-3 bg-muted/30 border-b border-border">
+      <div className="px-4 sm:px-6 lg:px-8 pt-4 pb-3 bg-muted/30 border-b border-border">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px_320px] gap-6 items-end">
           <div>
             <div className="text-xs text-muted-foreground flex items-center gap-2">
@@ -155,7 +155,7 @@ export default function NewQrActionPage() {
           value="basic"
           className="flex-1 overflow-y-auto bg-muted/10"
         >
-          <div className="grid grid-cols-[260px_1fr] gap-6 p-6">
+          <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-4 md:gap-6 p-4 md:p-6">
             <aside className="rounded-md border border-border bg-background overflow-hidden h-fit">
               <div className="bg-muted/60 px-4 py-2.5 text-sm font-bold text-center">
                 設定項目

@@ -13,7 +13,7 @@ export default function BulkPreviewPage() {
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-4">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-4">
       {/* パンくず + 戻るリンク */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <nav className="flex items-center gap-2 text-sm">

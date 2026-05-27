@@ -32,14 +32,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { MobileNavTrigger } from "@/components/layout/mobile-nav-trigger";
 
 export function Header() {
   const currentChannel = MOCK_CHANNELS[0];
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between gap-4 h-16 px-4 lg:px-6 bg-background/95 backdrop-blur border-b border-border">
+    <header className="sticky top-0 z-30 flex items-center justify-between gap-2 sm:gap-4 h-16 px-2 sm:px-4 lg:px-6 bg-background/95 backdrop-blur border-b border-border">
+      <MobileNavTrigger />
       {/* Center: channel switcher */}
-      <div className="flex items-center gap-2 flex-1 max-w-2xl mx-auto">
+      <div className="flex items-center gap-2 flex-1 min-w-0 max-w-2xl lg:mx-auto">
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
@@ -93,7 +95,7 @@ export function Header() {
               <Button
                 variant="outline"
                 size="icon"
-                className="rounded-full size-11"
+                className="hidden md:inline-flex rounded-full size-11"
               />
             }
           >
@@ -104,10 +106,12 @@ export function Header() {
       </div>
 
       {/* Right utilities */}
-      <div className="flex items-center gap-1">
-        <HeaderIconButton icon={faChartColumn} label="配信数" />
-        <HeaderIconButton icon={faHeadset} label="サポート" />
-        <HeaderIconButton icon={faBell} label="お知らせ" dot />
+      <div className="flex items-center gap-1 shrink-0">
+        <div className="hidden sm:flex items-center gap-1">
+          <HeaderIconButton icon={faChartColumn} label="配信数" />
+          <HeaderIconButton icon={faHeadset} label="サポート" />
+          <HeaderIconButton icon={faBell} label="お知らせ" dot />
+        </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger

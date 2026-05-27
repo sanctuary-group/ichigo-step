@@ -38,7 +38,7 @@ export default function ExistingGreetingsPage() {
   const [actionOpen, setActionOpen] = useState(false);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-4">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-4">
       <div className="flex items-center gap-3 flex-wrap">
         <span className="inline-flex items-center rounded-full bg-sky-500 text-white px-3 py-1 text-xs font-bold">
           既存友だち用
@@ -235,7 +235,7 @@ export default function ExistingGreetingsPage() {
 
               <div className="relative">
                 <div className="absolute top-4 left-[16.67%] right-[16.67%] h-px bg-border" />
-                <div className="grid grid-cols-3 gap-3 relative">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 relative">
                   {TEST_STEPS.map((step, i) => (
                     <div key={i} className="space-y-3">
                       <div className="flex justify-center">

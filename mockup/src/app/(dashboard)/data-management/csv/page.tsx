@@ -31,7 +31,7 @@ const IMPORT_ROWS: CsvRow[] = [];
 export default function CsvPage() {
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
-      <div className="px-6 lg:px-8 pt-5 pb-3 border-b border-border">
+      <div className="px-4 sm:px-6 lg:px-8 pt-5 pb-3 border-b border-border">
         <h1 className="text-lg font-bold tracking-tight">CSV管理</h1>
       </div>
 

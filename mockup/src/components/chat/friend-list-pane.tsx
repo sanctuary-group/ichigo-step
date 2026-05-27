@@ -23,9 +23,11 @@ const FILTER_LABELS: Record<string, string> = {
 export function FriendListPane({
   selectedId,
   onSelect,
+  mobileVisible = true,
 }: {
   selectedId: string | null;
   onSelect: (id: string) => void;
+  mobileVisible?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "unread" | "following">("all");
@@ -42,7 +44,9 @@ export function FriendListPane({
   }, [query, filter]);
 
   return (
-    <div className="hidden md:flex w-72 lg:w-80 shrink-0 flex-col border-r border-border bg-background">
+    <div
+      className={`${mobileVisible ? "flex" : "hidden"} lg:flex w-full lg:w-80 shrink-0 flex-col border-r border-border bg-background`}
+    >
       <div className="px-3 pt-3 pb-2 space-y-2">
         <div className="flex items-center gap-2">
           <Button

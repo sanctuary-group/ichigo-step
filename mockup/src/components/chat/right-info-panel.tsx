@@ -10,6 +10,7 @@ import {
   faArrowsRotate,
   faStairs,
   faLayerGroup,
+  faChevronLeft,
 } from "@fortawesome/free-solid-svg-icons";
 
 import {
@@ -27,12 +28,34 @@ import {
 } from "@/mocks/data";
 import { formatDateTime } from "@/lib/time";
 
-export function RightInfoPanel({ friend }: { friend: MockFriend }) {
+export function RightInfoPanel({
+  friend,
+  mobileVisible = false,
+  onBack,
+}: {
+  friend: MockFriend;
+  mobileVisible?: boolean;
+  onBack?: () => void;
+}) {
   const tags = MOCK_TAGS.filter((t) => friend.tagIds.includes(t.id));
   const scenario = getScenarioById(friend.scenarioId);
 
   return (
-    <aside className="hidden xl:flex w-80 shrink-0 flex-col border-l border-border bg-background">
+    <aside
+      className={`${mobileVisible ? "flex" : "hidden"} xl:flex w-full xl:w-80 shrink-0 flex-col border-l border-border bg-background`}
+    >
+      <div className="flex items-center gap-2 h-12 px-3 border-b border-border xl:hidden">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="text-muted-foreground"
+          onClick={onBack}
+          aria-label="トークに戻る"
+        >
+          <FontAwesomeIcon icon={faChevronLeft} className="size-4" />
+        </Button>
+        <div className="text-sm font-medium">友だち情報</div>
+      </div>
       <Tabs defaultValue="basic" className="flex-1 flex flex-col min-h-0">
         <TabsList className="mx-3 mt-3 grid grid-cols-4 h-9 bg-muted/60 w-auto">
           <TabsTrigger value="basic" aria-label="基本情報">

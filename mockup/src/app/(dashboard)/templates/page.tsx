@@ -111,7 +111,7 @@ export default function TemplatesPage() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-5">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-5">
       {/* タイトル行 */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">テンプレート</h1>
@@ -123,7 +123,7 @@ export default function TemplatesPage() {
 
       <hr className="border-border" />
 
-      <div className="grid grid-cols-[240px_1fr] gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-4 md:gap-6">
         {/* 左ペイン: フォルダ */}
         <aside className="space-y-3">
           <div className="flex items-center gap-2">

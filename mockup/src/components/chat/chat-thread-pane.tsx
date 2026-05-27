@@ -11,6 +11,8 @@ import {
   faFaceSmile,
   faPaperPlane,
   faChevronDown,
+  faChevronLeft,
+  faCircleInfo,
 } from "@fortawesome/free-solid-svg-icons";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,13 +24,27 @@ import { EmptyState } from "@/components/empty-state";
 import { faComments } from "@fortawesome/free-solid-svg-icons";
 import { getFriend, getMessagesByFriend } from "@/mocks/data";
 
-export function ChatThreadPane({ friendId }: { friendId: string | null }) {
+export function ChatThreadPane({
+  friendId,
+  mobileVisible = true,
+  onBack,
+  onShowInfo,
+}: {
+  friendId: string | null;
+  mobileVisible?: boolean;
+  onBack?: () => void;
+  onShowInfo?: () => void;
+}) {
   const friend = friendId ? getFriend(friendId) : undefined;
   const messages = friendId ? getMessagesByFriend(friendId) : [];
 
+  const mobileVisibilityClass = mobileVisible ? "flex" : "hidden";
+
   if (!friend) {
     return (
-      <div className="flex-1 grid place-items-center bg-muted/20">
+      <div
+        className={`${mobileVisibilityClass} lg:flex flex-1 place-items-center bg-muted/20 min-w-0`}
+      >
         <EmptyState
           icon={faComments}
           title="友だちを選択してください"
@@ -39,13 +55,28 @@ export function ChatThreadPane({ friendId }: { friendId: string | null }) {
   }
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-muted/20">
+    <div
+      className={`${mobileVisibilityClass} lg:flex flex-1 flex-col min-w-0 bg-muted/20`}
+    >
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 h-14 border-b border-border bg-background shrink-0">
+      <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 h-14 border-b border-border bg-background shrink-0">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="lg:hidden text-muted-foreground"
+          onClick={onBack}
+          aria-label="一覧に戻る"
+        >
+          <FontAwesomeIcon icon={faChevronLeft} className="size-4" />
+        </Button>
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button variant="ghost" size="icon-sm" className="text-muted-foreground" />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="hidden lg:inline-flex text-muted-foreground"
+              />
             }
           >
             <FontAwesomeIcon icon={faBookmark} className="size-4" />
@@ -56,14 +87,18 @@ export function ChatThreadPane({ friendId }: { friendId: string | null }) {
           <AvatarImage src={friend.pictureUrl} />
           <AvatarFallback>{friend.displayName.slice(0, 1)}</AvatarFallback>
         </Avatar>
-        <div className="font-medium text-sm text-primary">
+        <div className="font-medium text-sm text-primary truncate min-w-0">
           {friend.displayName}
         </div>
         <div className="flex-1" />
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button variant="ghost" size="icon-sm" className="text-muted-foreground" />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="hidden xl:inline-flex text-muted-foreground"
+              />
             }
           >
             <FontAwesomeIcon icon={faAddressCard} className="size-4" />
@@ -73,7 +108,11 @@ export function ChatThreadPane({ friendId }: { friendId: string | null }) {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button variant="ghost" size="icon-sm" className="text-muted-foreground" />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="hidden xl:inline-flex text-muted-foreground"
+              />
             }
           >
             <FontAwesomeIcon icon={faLink} className="size-4" />
@@ -83,7 +122,7 @@ export function ChatThreadPane({ friendId }: { friendId: string | null }) {
         <Button
           variant="outline"
           size="sm"
-          className="h-8 rounded-full gap-1.5 text-xs"
+          className="hidden sm:inline-flex h-8 rounded-full gap-1.5 text-xs"
         >
           ステータスなし
           <FontAwesomeIcon
@@ -94,13 +133,26 @@ export function ChatThreadPane({ friendId }: { friendId: string | null }) {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button variant="ghost" size="icon-sm" className="text-muted-foreground" />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="hidden xl:inline-flex text-muted-foreground"
+              />
             }
           >
             <FontAwesomeIcon icon={faPenToSquare} className="size-4" />
           </TooltipTrigger>
           <TooltipContent>編集</TooltipContent>
         </Tooltip>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="lg:hidden text-muted-foreground"
+          onClick={onShowInfo}
+          aria-label="友だち情報を表示"
+        >
+          <FontAwesomeIcon icon={faCircleInfo} className="size-4" />
+        </Button>
       </div>
 
       {/* Messages */}

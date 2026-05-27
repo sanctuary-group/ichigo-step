@@ -41,7 +41,7 @@ export default function NewRichMenuPage() {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-muted/20">
-      <div className="px-6 lg:px-8 pt-4 pb-3 bg-background border-b border-border">
+      <div className="px-4 sm:px-6 lg:px-8 pt-4 pb-3 bg-background border-b border-border">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px_320px] gap-6 items-end">
           <div>
             <div className="text-xs text-muted-foreground flex items-center gap-2">
@@ -194,7 +194,7 @@ export default function NewRichMenuPage() {
                   などのサービスで簡単に作成ができます。
                 </p>
 
-                <div className="grid grid-cols-2 gap-6 mt-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-5">
                   <SizePreview cols={3} rows={2} label="横) 2,500px　縦)1,686px" />
                   <SizePreview cols={3} rows={1} label="横) 2,500px　縦)843px" />
                 </div>
@@ -204,7 +204,7 @@ export default function NewRichMenuPage() {
         </section>
       </div>
 
-      <div className="flex items-center justify-between px-6 lg:px-8 py-3 bg-background border-t border-border gap-3">
+      <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3 bg-background border-t border-border gap-3">
         <div className="text-sm flex items-center gap-1.5">
           編集内容の友だちへの反映タイミング
           <FontAwesomeIcon

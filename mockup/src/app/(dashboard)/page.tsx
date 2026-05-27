@@ -63,13 +63,13 @@ const STATUS_BUCKETS: StatusBucket[] = [
 
 export default function HomePage() {
   return (
-    <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-8">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
       <h1 className="text-xl font-bold tracking-tight">ホーム</h1>
 
       <section className="space-y-3">
         <h2 className="text-base font-bold">お知らせ</h2>
         <div className="rounded-md border border-border bg-muted/20 overflow-hidden">
-          <div className="grid grid-cols-[180px_1fr] bg-muted/60 px-5 py-2.5 text-sm font-bold">
+          <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[180px_1fr] bg-muted/60 px-5 py-2.5 text-sm font-bold">
             <div>投稿日</div>
             <div>お知らせ内容</div>
           </div>
@@ -77,7 +77,7 @@ export default function HomePage() {
             {ANNOUNCEMENTS.map((a, i) => (
               <li
                 key={i}
-                className="grid grid-cols-[180px_1fr] px-5 py-2.5 text-sm border-t border-border/60 first:border-t-0"
+                className="grid grid-cols-[110px_1fr] sm:grid-cols-[180px_1fr] px-5 py-2.5 text-sm border-t border-border/60 first:border-t-0"
               >
                 <div className="text-foreground">{a.date}</div>
                 <div className="flex items-center gap-2 min-w-0">

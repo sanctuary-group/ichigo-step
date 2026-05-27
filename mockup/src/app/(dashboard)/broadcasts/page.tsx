@@ -103,7 +103,7 @@ export default function BroadcastsPage() {
   }[activeTab];
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-5">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-5">
       {/* タイトル + マニュアル */}
       <div className="flex items-start justify-between">
         <div>

@@ -36,7 +36,7 @@ export default function NewBroadcastPage() {
   const sender = MOCK_CHANNELS[0];
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-5">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-5">
       {/* タイトル */}
       <div className="flex items-start justify-between">
         <h1 className="text-2xl font-bold tracking-tight">メッセージ登録</h1>

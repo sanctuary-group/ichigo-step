@@ -63,15 +63,15 @@ export default function FriendFieldsPage() {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
-      <div className="px-6 lg:px-8 pt-5 pb-3 border-b border-border">
+      <div className="px-4 sm:px-6 lg:px-8 pt-5 pb-3 border-b border-border">
         <h1 className="text-lg font-bold tracking-tight">友だち情報管理</h1>
         <p className="text-xs text-muted-foreground mt-1">
           友だち情報のページや1:1チャットに表示させる情報を追加で登録することができます。
         </p>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="w-56 shrink-0 border-r border-border flex flex-col">
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+        <aside className="w-full md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-border flex flex-col max-h-[40vh] md:max-h-none">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="text-sm font-bold">フォルダ</div>
             <div className="flex items-center gap-1">

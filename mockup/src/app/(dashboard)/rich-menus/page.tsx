@@ -100,7 +100,7 @@ export default function RichMenusPage() {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
-      <div className="flex items-center justify-between px-6 lg:px-8 py-4 border-b border-border bg-muted/30">
+      <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 border-b border-border bg-muted/30">
         <h1 className="text-lg font-bold tracking-tight">リッチメニュー</h1>
         <Button
           onClick={() => setCreateOpen(true)}
@@ -111,9 +111,9 @@ export default function RichMenusPage() {
         </Button>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
         {folderVisible && (
-          <aside className="w-56 shrink-0 border-r border-border flex flex-col">
+          <aside className="w-full md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-border flex flex-col max-h-[40vh] md:max-h-none">
             <div className="flex items-center justify-between px-4 py-3">
               <div className="text-sm font-bold">フォルダ</div>
               <div className="flex items-center gap-1">
