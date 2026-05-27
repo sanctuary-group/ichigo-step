@@ -11,6 +11,8 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\Settings\ChannelController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\TemplateController;
+use App\Http\Controllers\TemplateFolderController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -49,6 +51,11 @@ Route::middleware('auth')->group(function () {
     Route::resource('tags', TagController::class)
         ->only(['index', 'store', 'update', 'destroy']);
 
+    Route::resource('templates', TemplateController::class)
+        ->only(['index', 'store', 'update', 'destroy']);
+    Route::resource('template-folders', TemplateFolderController::class)
+        ->only(['store', 'update', 'destroy']);
+
     Route::get('friends', [FriendController::class, 'index'])->name('friends.index');
     Route::patch('friends/{friend}', [FriendController::class, 'update'])
         ->name('friends.update');
@@ -70,7 +77,6 @@ Route::middleware('auth')->group(function () {
 
     // サイドバー項目の placeholder（B-3b 以降で順次実装）
     $placeholderRoutes = [
-        '/templates' => 'テンプレート',
         '/broadcasts' => 'メッセージ配信',
         '/scenarios' => 'ステップ配信',
         '/greetings' => 'あいさつメッセージ',
