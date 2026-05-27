@@ -7,6 +7,7 @@ use App\Models\Friend;
 use App\Services\Line\LineClient;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -39,6 +40,7 @@ class FriendController extends Controller
         }
 
         $friends = $query
+            ->orderByRaw('pinned_at IS NULL, pinned_at DESC')
             ->orderByDesc('followed_at')
             ->orderByDesc('id')
             ->paginate(50)
@@ -75,6 +77,28 @@ class FriendController extends Controller
         $friend->update($request->validated());
 
         return back()->with('flash.success', '友だち情報を更新しました');
+    }
+
+    public function togglePin(Friend $friend): RedirectResponse
+    {
+        $friend->forceFill([
+            'pinned_at' => $friend->pinned_at ? null : now(),
+        ])->save();
+
+        return back(303);
+    }
+
+    public function setChatStatus(Request $request, Friend $friend): RedirectResponse
+    {
+        $validated = $request->validate([
+            'chat_status' => ['nullable', Rule::in(['pending', 'in_progress', 'completed'])],
+        ]);
+
+        $friend->forceFill([
+            'chat_status' => $validated['chat_status'] ?? null,
+        ])->save();
+
+        return back(303);
     }
 
     public function refreshProfile(Friend $friend): RedirectResponse

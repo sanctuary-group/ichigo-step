@@ -13,6 +13,7 @@ class ChatController extends Controller
     public function index(Request $request): Response
     {
         $friends = Friend::with('tags')
+            ->orderByRaw('pinned_at IS NULL, pinned_at DESC')
             ->orderByDesc('last_message_at')
             ->orderByDesc('id')
             ->get();

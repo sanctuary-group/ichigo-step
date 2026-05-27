@@ -10,6 +10,11 @@ import {
     faCircleInfo,
     faComments,
     faXmark,
+    faBookmark,
+    faAddressCard,
+    faLink,
+    faChevronDown,
+    faPenToSquare,
 } from "@fortawesome/free-solid-svg-icons";
 import {
     FormEvent,
@@ -19,14 +24,22 @@ import {
 } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ChatBubble } from "@/components/chat/chat-bubble";
 import { EmptyState } from "@/components/empty-state";
 import { FriendAvatar } from "@/components/friend-avatar";
 import { friendDisplayName } from "@/lib/friend";
 import { cn } from "@/lib/utils";
 import { formatDateLabel } from "@/lib/time";
-import type { Friend, Message } from "@/types/chat";
+import type { ChatStatus, Friend, Message } from "@/types/chat";
 
 export function ChatThreadPane({
     friend,
@@ -57,35 +70,15 @@ export function ChatThreadPane({
         );
     }
 
-    const name = friendDisplayName(friend);
-
     return (
         <div
             className={`${mobileVisibilityClass} lg:flex flex-1 flex-col min-w-0 bg-muted/20`}
         >
-            <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 h-14 border-b border-border bg-background shrink-0">
-                <Button
-                    variant="ghost"
-                    className="lg:hidden text-muted-foreground size-9 p-0"
-                    onClick={onBack}
-                    aria-label="一覧に戻る"
-                >
-                    <FontAwesomeIcon icon={faChevronLeft} className="size-4" />
-                </Button>
-                <FriendAvatar friend={friend} className="size-8" />
-                <div className="font-medium text-sm text-primary truncate min-w-0">
-                    {name}
-                </div>
-                <div className="flex-1" />
-                <Button
-                    variant="ghost"
-                    className="lg:hidden text-muted-foreground size-9 p-0"
-                    onClick={onShowInfo}
-                    aria-label="友だち情報を表示"
-                >
-                    <FontAwesomeIcon icon={faCircleInfo} className="size-4" />
-                </Button>
-            </div>
+            <ChatHeader
+                friend={friend}
+                onBack={onBack}
+                onShowInfo={onShowInfo}
+            />
 
             <div className="flex-1 overflow-y-auto px-4 py-6">
                 {messages.length === 0 ? (
@@ -124,6 +117,190 @@ export function ChatThreadPane({
             </div>
 
             <Composer friend={friend} />
+        </div>
+    );
+}
+
+const CHAT_STATUS_OPTIONS: { value: ChatStatus; label: string; color?: string }[] = [
+    { value: null, label: "ステータスなし" },
+    { value: "pending", label: "未対応", color: "text-amber-600" },
+    { value: "in_progress", label: "対応中", color: "text-blue-600" },
+    { value: "completed", label: "完了", color: "text-emerald-600" },
+];
+
+function ChatHeader({
+    friend,
+    onBack,
+    onShowInfo,
+}: {
+    friend: Friend;
+    onBack?: () => void;
+    onShowInfo?: () => void;
+}) {
+    const name = friendDisplayName(friend);
+    const isPinned = !!friend.pinned_at;
+    const currentStatus = CHAT_STATUS_OPTIONS.find(
+        (o) => o.value === friend.chat_status,
+    ) ?? CHAT_STATUS_OPTIONS[0];
+
+    const togglePin = () => {
+        router.patch(
+            `/friends/${friend.id}/pin`,
+            {},
+            { preserveScroll: true, preserveState: true },
+        );
+    };
+
+    const setChatStatus = (status: ChatStatus) => {
+        router.patch(
+            `/friends/${friend.id}/chat-status`,
+            { chat_status: status },
+            { preserveScroll: true, preserveState: true },
+        );
+    };
+
+    const openEditDialog = () => {
+        document.dispatchEvent(
+            new CustomEvent("friend:edit", { detail: { friendId: friend.id } }),
+        );
+    };
+
+    return (
+        <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 h-14 border-b border-border bg-background shrink-0">
+            <Button
+                variant="ghost"
+                className="lg:hidden text-muted-foreground size-9 p-0"
+                onClick={onBack}
+                aria-label="一覧に戻る"
+            >
+                <FontAwesomeIcon icon={faChevronLeft} className="size-4" />
+            </Button>
+
+            <Tooltip>
+                <TooltipTrigger
+                    render={
+                        <Button
+                            variant="ghost"
+                            className={cn(
+                                "hidden lg:inline-flex size-9 p-0",
+                                isPinned
+                                    ? "text-primary"
+                                    : "text-muted-foreground hover:text-foreground",
+                            )}
+                            onClick={togglePin}
+                            aria-label={isPinned ? "ピン留めを解除" : "ピン留め"}
+                        />
+                    }
+                >
+                    <FontAwesomeIcon icon={faBookmark} className="size-4" />
+                </TooltipTrigger>
+                <TooltipContent>
+                    {isPinned ? "ピン留めを解除" : "ピン留め"}
+                </TooltipContent>
+            </Tooltip>
+
+            <FriendAvatar friend={friend} className="size-8" />
+            <div className="font-medium text-sm text-primary truncate min-w-0">
+                {name}
+            </div>
+
+            <div className="flex-1" />
+
+            <Tooltip>
+                <TooltipTrigger
+                    render={
+                        <Button
+                            variant="ghost"
+                            className="hidden xl:inline-flex text-muted-foreground hover:text-foreground size-9 p-0"
+                            disabled
+                            aria-label="名刺"
+                        />
+                    }
+                >
+                    <FontAwesomeIcon icon={faAddressCard} className="size-4" />
+                </TooltipTrigger>
+                <TooltipContent>名刺（次フェーズ）</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+                <TooltipTrigger
+                    render={
+                        <Button
+                            variant="ghost"
+                            className="hidden xl:inline-flex text-muted-foreground hover:text-foreground size-9 p-0"
+                            disabled
+                            aria-label="関連リンク"
+                        />
+                    }
+                >
+                    <FontAwesomeIcon icon={faLink} className="size-4" />
+                </TooltipTrigger>
+                <TooltipContent>関連リンク（次フェーズ）</TooltipContent>
+            </Tooltip>
+
+            <DropdownMenu>
+                <DropdownMenuTrigger
+                    render={
+                        <Button
+                            variant="outline"
+                            className={cn(
+                                "hidden sm:inline-flex h-8 rounded-full gap-1.5 text-xs px-3",
+                                currentStatus.color,
+                            )}
+                        />
+                    }
+                >
+                    {currentStatus.label}
+                    <FontAwesomeIcon
+                        icon={faChevronDown}
+                        className="size-2.5 text-muted-foreground"
+                    />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                    {CHAT_STATUS_OPTIONS.map((opt, i) => (
+                        <DropdownMenuItem
+                            key={opt.value ?? "none"}
+                            onClick={() => setChatStatus(opt.value)}
+                            className={cn(
+                                opt.color,
+                                friend.chat_status === opt.value
+                                    ? "bg-muted font-medium"
+                                    : "",
+                            )}
+                        >
+                            {opt.label}
+                            {i === 0 && (
+                                <DropdownMenuSeparator className="my-1" />
+                            )}
+                        </DropdownMenuItem>
+                    ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Tooltip>
+                <TooltipTrigger
+                    render={
+                        <Button
+                            variant="ghost"
+                            className="hidden xl:inline-flex text-muted-foreground hover:text-foreground size-9 p-0"
+                            onClick={openEditDialog}
+                            aria-label="基本情報を編集"
+                        />
+                    }
+                >
+                    <FontAwesomeIcon icon={faPenToSquare} className="size-4" />
+                </TooltipTrigger>
+                <TooltipContent>基本情報を編集</TooltipContent>
+            </Tooltip>
+
+            <Button
+                variant="ghost"
+                className="lg:hidden text-muted-foreground size-9 p-0"
+                onClick={onShowInfo}
+                aria-label="友だち情報を表示"
+            >
+                <FontAwesomeIcon icon={faCircleInfo} className="size-4" />
+            </Button>
         </div>
     );
 }

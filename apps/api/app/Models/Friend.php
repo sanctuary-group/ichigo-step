@@ -21,6 +21,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'note',
     'is_following',
     'is_hidden',
+    'pinned_at',
+    'chat_status',
     'followed_at',
     'unfollowed_at',
     'last_message_preview',
@@ -44,6 +46,7 @@ class Friend extends Model
             'last_message_at' => 'datetime',
             'metadata' => 'array',
             'pending_reply_received_at' => 'datetime',
+            'pinned_at' => 'datetime',
         ];
     }
 

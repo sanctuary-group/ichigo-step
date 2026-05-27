@@ -7,6 +7,8 @@ export type Tag = {
 
 export type FriendSource = "qr" | "card" | "web" | "manual" | "other" | null;
 
+export type ChatStatus = "pending" | "in_progress" | "completed" | null;
+
 export type Friend = {
     id: number;
     organization_id: number;
@@ -20,6 +22,8 @@ export type Friend = {
     note: string | null;
     is_following: boolean;
     is_hidden: boolean;
+    pinned_at: string | null;
+    chat_status: ChatStatus;
     followed_at: string | null;
     unfollowed_at: string | null;
     last_message_preview: string | null;

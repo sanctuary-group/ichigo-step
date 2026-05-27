@@ -59,6 +59,17 @@ export function RightInfoPanel({
     >(null);
     const name = friendDisplayName(friend);
 
+    useEffect(() => {
+        const handler = (e: Event) => {
+            const detail = (e as CustomEvent<{ friendId: number }>).detail;
+            if (detail.friendId === friend.id) {
+                setEditField("system_display_name");
+            }
+        };
+        document.addEventListener("friend:edit", handler);
+        return () => document.removeEventListener("friend:edit", handler);
+    }, [friend.id]);
+
     const attachTag = (tag: Tag) => {
         router.post(
             `/friends/${friend.id}/tags/${tag.id}`,

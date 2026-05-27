@@ -1,3 +1,6 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBookmark } from "@fortawesome/free-solid-svg-icons";
+
 import { FriendAvatar } from "@/components/friend-avatar";
 import { cn } from "@/lib/utils";
 import { friendDisplayName } from "@/lib/friend";
@@ -26,6 +29,13 @@ export function FriendListItem({
             <FriendAvatar friend={friend} className="size-11 shrink-0" />
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
+                    {friend.pinned_at && (
+                        <FontAwesomeIcon
+                            icon={faBookmark}
+                            className="size-3 text-primary shrink-0"
+                            aria-label="ピン留め中"
+                        />
+                    )}
                     <div className="text-sm font-medium truncate flex-1">
                         {name}
                     </div>
