@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'is_following',
     'is_hidden',
     'pinned_at',
-    'chat_status',
+    'chat_status_id',
     'followed_at',
     'unfollowed_at',
     'last_message_preview',
@@ -64,5 +64,10 @@ class Friend extends Model
     {
         return $this->belongsToMany(Tag::class)
             ->withPivot('assigned_at');
+    }
+
+    public function chatStatus(): BelongsTo
+    {
+        return $this->belongsTo(ChatStatus::class);
     }
 }

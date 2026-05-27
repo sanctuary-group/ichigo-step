@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\ChatStatusController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\FriendTagController;
 use App\Http\Controllers\HomeController;
@@ -33,8 +34,12 @@ Route::middleware('auth')->group(function () {
         ->name('settings.channels.test');
 
     Route::get('/chat', [ChatController::class, 'index'])->name('chat');
+    Route::get('/chat/settings', fn () => Inertia::render('Chat/Settings'))->name('chat.settings');
     Route::post('/chat/{friend}/messages', [MessageController::class, 'store'])
         ->name('chat.messages.store');
+
+    Route::resource('chat-statuses', ChatStatusController::class)
+        ->only(['store', 'update', 'destroy']);
 
     Route::resource('tags', TagController::class)
         ->only(['index', 'store', 'update', 'destroy']);
@@ -60,7 +65,6 @@ Route::middleware('auth')->group(function () {
 
     // サイドバー項目の placeholder（B-3b 以降で順次実装）
     $placeholderRoutes = [
-        '/chat/settings' => 'チャット設定',
         '/chat/management' => 'チャット管理',
         '/templates' => 'テンプレート',
         '/broadcasts' => 'メッセージ配信',

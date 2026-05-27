@@ -48,6 +48,9 @@ class HandleInertiaRequests extends Middleware
             'tags' => fn () => $request->user()
                 ? \App\Models\Tag::orderBy('name')->get(['id', 'organization_id', 'name', 'color'])->values()
                 : [],
+            'chatStatuses' => fn () => $request->user()
+                ? \App\Models\ChatStatus::orderBy('sort_order')->get(['id', 'organization_id', 'name', 'color', 'sort_order'])->values()
+                : [],
             'flash' => [
                 'success' => fn () => $request->session()->get('flash.success'),
                 'error' => fn () => $request->session()->get('flash.error'),

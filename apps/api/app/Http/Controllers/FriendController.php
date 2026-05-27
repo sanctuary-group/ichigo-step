@@ -91,11 +91,11 @@ class FriendController extends Controller
     public function setChatStatus(Request $request, Friend $friend): RedirectResponse
     {
         $validated = $request->validate([
-            'chat_status' => ['nullable', Rule::in(['pending', 'in_progress', 'completed'])],
+            'chat_status_id' => ['nullable', 'integer', 'exists:chat_statuses,id'],
         ]);
 
         $friend->forceFill([
-            'chat_status' => $validated['chat_status'] ?? null,
+            'chat_status_id' => $validated['chat_status_id'] ?? null,
         ])->save();
 
         return back(303);

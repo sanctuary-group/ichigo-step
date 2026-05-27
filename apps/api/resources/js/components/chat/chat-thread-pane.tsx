@@ -1,4 +1,4 @@
-import { router, useForm } from "@inertiajs/react";
+import { Link, router, useForm, usePage } from "@inertiajs/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faPaperclip,
@@ -121,13 +121,6 @@ export function ChatThreadPane({
     );
 }
 
-const CHAT_STATUS_OPTIONS: { value: ChatStatus; label: string; color?: string }[] = [
-    { value: null, label: "ステータスなし" },
-    { value: "pending", label: "未対応", color: "text-amber-600" },
-    { value: "in_progress", label: "対応中", color: "text-blue-600" },
-    { value: "completed", label: "完了", color: "text-emerald-600" },
-];
-
 function ChatHeader({
     friend,
     onBack,
@@ -137,11 +130,13 @@ function ChatHeader({
     onBack?: () => void;
     onShowInfo?: () => void;
 }) {
+    const { props } = usePage<{ chatStatuses?: ChatStatus[] }>();
+    const chatStatuses = props.chatStatuses ?? [];
     const name = friendDisplayName(friend);
     const isPinned = !!friend.pinned_at;
-    const currentStatus = CHAT_STATUS_OPTIONS.find(
-        (o) => o.value === friend.chat_status,
-    ) ?? CHAT_STATUS_OPTIONS[0];
+    const currentStatus = chatStatuses.find(
+        (s) => s.id === friend.chat_status_id,
+    );
 
     const togglePin = () => {
         router.patch(
@@ -151,17 +146,11 @@ function ChatHeader({
         );
     };
 
-    const setChatStatus = (status: ChatStatus) => {
+    const setChatStatus = (statusId: number | null) => {
         router.patch(
             `/friends/${friend.id}/chat-status`,
-            { chat_status: status },
+            { chat_status_id: statusId },
             { preserveScroll: true, preserveState: true },
-        );
-    };
-
-    const openEditDialog = () => {
-        document.dispatchEvent(
-            new CustomEvent("friend:edit", { detail: { friendId: friend.id } }),
         );
     };
 
@@ -243,35 +232,58 @@ function ChatHeader({
                     render={
                         <Button
                             variant="outline"
-                            className={cn(
-                                "hidden sm:inline-flex h-8 rounded-full gap-1.5 text-xs px-3",
-                                currentStatus.color,
-                            )}
+                            className="hidden sm:inline-flex h-8 rounded-full gap-1.5 text-xs px-3"
                         />
                     }
                 >
-                    {currentStatus.label}
+                    {currentStatus ? (
+                        <span
+                            className="inline-flex items-center gap-1.5"
+                            style={{ color: currentStatus.color }}
+                        >
+                            <span
+                                className="inline-block size-2 rounded-full"
+                                style={{ backgroundColor: currentStatus.color }}
+                            />
+                            {currentStatus.name}
+                        </span>
+                    ) : (
+                        <span className="text-muted-foreground">ステータスなし</span>
+                    )}
                     <FontAwesomeIcon
                         icon={faChevronDown}
                         className="size-2.5 text-muted-foreground"
                     />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-40">
-                    {CHAT_STATUS_OPTIONS.map((opt, i) => (
+                <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuItem
+                        onClick={() => setChatStatus(null)}
+                        className={
+                            friend.chat_status_id === null
+                                ? "bg-muted font-medium"
+                                : ""
+                        }
+                    >
+                        ステータスなし
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="my-1" />
+                    {chatStatuses.map((s) => (
                         <DropdownMenuItem
-                            key={opt.value ?? "none"}
-                            onClick={() => setChatStatus(opt.value)}
+                            key={s.id}
+                            onClick={() => setChatStatus(s.id)}
                             className={cn(
-                                opt.color,
-                                friend.chat_status === opt.value
+                                "gap-2",
+                                friend.chat_status_id === s.id
                                     ? "bg-muted font-medium"
                                     : "",
                             )}
+                            style={{ color: s.color }}
                         >
-                            {opt.label}
-                            {i === 0 && (
-                                <DropdownMenuSeparator className="my-1" />
-                            )}
+                            <span
+                                className="inline-block size-2 rounded-full"
+                                style={{ backgroundColor: s.color }}
+                            />
+                            {s.name}
                         </DropdownMenuItem>
                     ))}
                 </DropdownMenuContent>
@@ -280,17 +292,16 @@ function ChatHeader({
             <Tooltip>
                 <TooltipTrigger
                     render={
-                        <Button
-                            variant="ghost"
-                            className="hidden xl:inline-flex text-muted-foreground hover:text-foreground size-9 p-0"
-                            onClick={openEditDialog}
-                            aria-label="基本情報を編集"
+                        <Link
+                            href="/chat/settings"
+                            className="hidden xl:inline-flex items-center justify-center rounded-lg size-9 text-muted-foreground hover:text-foreground hover:bg-muted dark:hover:bg-muted/50 transition-colors"
+                            aria-label="チャット設定"
                         />
                     }
                 >
                     <FontAwesomeIcon icon={faPenToSquare} className="size-4" />
                 </TooltipTrigger>
-                <TooltipContent>基本情報を編集</TooltipContent>
+                <TooltipContent>チャット設定</TooltipContent>
             </Tooltip>
 
             <Button
@@ -372,6 +383,26 @@ function Composer({ friend }: { friend: Friend }) {
     const insertEmoji = (emoji: string) => {
         form.setData("content", form.data.content + emoji);
         inputRef.current?.focus();
+    };
+
+    const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key !== "Enter") return;
+        let mode = "shift_enter_send";
+        try {
+            const raw = localStorage.getItem("chatSettings.sendShortcut");
+            if (raw) mode = JSON.parse(raw);
+        } catch {
+            // ignore
+        }
+        if (mode === "shift_enter_send") {
+            if (e.shiftKey) {
+                e.preventDefault();
+                onSubmit(e as unknown as FormEvent);
+            } else {
+                e.preventDefault();
+            }
+        }
+        // enter_send: default Enter submits form naturally — no handling needed
     };
 
     const toggleRead = () => {
@@ -467,6 +498,7 @@ function Composer({ friend }: { friend: Friend }) {
                         className="flex-1 h-10 rounded-full bg-muted/40 border-transparent"
                         value={form.data.content}
                         onChange={(e) => form.setData("content", e.target.value)}
+                        onKeyDown={onKeyDown}
                         disabled={
                             !friend.is_following ||
                             form.processing ||
