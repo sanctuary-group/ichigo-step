@@ -60,6 +60,8 @@ class ProcessLineEventJob implements ShouldQueue
                 'is_following' => true,
                 'followed_at' => $timestamp,
                 'unfollowed_at' => null,
+                'pending_reply_token' => $this->event['replyToken'] ?? null,
+                'pending_reply_received_at' => isset($this->event['replyToken']) ? $timestamp : null,
             ],
         );
     }
@@ -112,6 +114,8 @@ class ProcessLineEventJob implements ShouldQueue
                 'last_message_preview' => $this->previewFor($messageType, $content),
                 'last_message_at' => $timestamp,
                 'unread_count' => $friend->unread_count + 1,
+                'pending_reply_token' => $this->event['replyToken'] ?? null,
+                'pending_reply_received_at' => isset($this->event['replyToken']) ? $timestamp : null,
             ])->save();
         }
     }
@@ -142,6 +146,8 @@ class ProcessLineEventJob implements ShouldQueue
         $friend->forceFill([
             'last_message_preview' => '[ボタン操作]',
             'last_message_at' => $timestamp,
+            'pending_reply_token' => $this->event['replyToken'] ?? null,
+            'pending_reply_received_at' => isset($this->event['replyToken']) ? $timestamp : null,
         ])->save();
     }
 

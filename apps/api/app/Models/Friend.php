@@ -24,6 +24,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'last_message_at',
     'unread_count',
     'metadata',
+    'pending_reply_token',
+    'pending_reply_received_at',
 ])]
 class Friend extends Model
 {
@@ -38,6 +40,7 @@ class Friend extends Model
             'unfollowed_at' => 'datetime',
             'last_message_at' => 'datetime',
             'metadata' => 'array',
+            'pending_reply_received_at' => 'datetime',
         ];
     }
 

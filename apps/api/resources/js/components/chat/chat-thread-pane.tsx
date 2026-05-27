@@ -1,3 +1,4 @@
+import { useForm } from "@inertiajs/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faPaperclip,
@@ -8,6 +9,7 @@ import {
     faCircleInfo,
     faComments,
 } from "@fortawesome/free-solid-svg-icons";
+import { FormEvent, useEffect, useRef } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -117,63 +119,96 @@ export function ChatThreadPane({
                 )}
             </div>
 
-            <div className="border-t border-border bg-background px-4 py-3 shrink-0">
-                <div className="flex flex-col gap-2 max-w-3xl mx-auto">
-                    <div className="flex items-center gap-1.5">
-                        <Button
-                            variant="ghost"
-                            className="rounded-full text-muted-foreground size-9 p-0"
-                            aria-label="ファイル添付"
-                            disabled
-                        >
-                            <FontAwesomeIcon
-                                icon={faPaperclip}
-                                className="size-4"
-                            />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            className="rounded-full text-muted-foreground size-9 p-0"
-                            aria-label="テンプレート"
-                            disabled
-                        >
-                            <FontAwesomeIcon
-                                icon={faEnvelope}
-                                className="size-4"
-                            />
-                        </Button>
-                        <Input
-                            placeholder="メッセージを入力してください"
-                            className="flex-1 h-10 rounded-full bg-muted/40 border-transparent"
-                            disabled
+            <Composer friend={friend} />
+        </div>
+    );
+}
+
+function Composer({ friend }: { friend: Friend }) {
+    const form = useForm({ content: "" });
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        form.clearErrors();
+        form.setData("content", "");
+    }, [friend.id]);
+
+    const onSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        if (! form.data.content.trim() || form.processing) return;
+        form.post(`/chat/${friend.id}/messages`, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                form.reset("content");
+                inputRef.current?.focus();
+            },
+        });
+    };
+
+    const canSend = friend.is_following && form.data.content.trim().length > 0 && ! form.processing;
+
+    return (
+        <div className="border-t border-border bg-background px-4 py-3 shrink-0">
+            <form onSubmit={onSubmit} className="flex flex-col gap-2 max-w-3xl mx-auto">
+                <div className="flex items-center gap-1.5">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        className="rounded-full text-muted-foreground size-9 p-0"
+                        aria-label="ファイル添付"
+                        disabled
+                    >
+                        <FontAwesomeIcon icon={faPaperclip} className="size-4" />
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        className="rounded-full text-muted-foreground size-9 p-0"
+                        aria-label="テンプレート"
+                        disabled
+                    >
+                        <FontAwesomeIcon icon={faEnvelope} className="size-4" />
+                    </Button>
+                    <Input
+                        ref={inputRef}
+                        placeholder={
+                            friend.is_following
+                                ? "メッセージを入力してください"
+                                : "ブロック中のため送信できません"
+                        }
+                        className="flex-1 h-10 rounded-full bg-muted/40 border-transparent"
+                        value={form.data.content}
+                        onChange={(e) => form.setData("content", e.target.value)}
+                        disabled={! friend.is_following || form.processing}
+                    />
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        className="rounded-full text-muted-foreground size-9 p-0"
+                        aria-label="絵文字"
+                        disabled
+                    >
+                        <FontAwesomeIcon icon={faFaceSmile} className="size-4" />
+                    </Button>
+                    <Button
+                        type="submit"
+                        className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 size-9 p-0"
+                        aria-label="送信"
+                        disabled={! canSend}
+                    >
+                        <FontAwesomeIcon
+                            icon={faPaperPlane}
+                            className="size-3.5"
                         />
-                        <Button
-                            variant="ghost"
-                            className="rounded-full text-muted-foreground size-9 p-0"
-                            aria-label="絵文字"
-                            disabled
-                        >
-                            <FontAwesomeIcon
-                                icon={faFaceSmile}
-                                className="size-4"
-                            />
-                        </Button>
-                        <Button
-                            className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 size-9 p-0"
-                            aria-label="送信"
-                            disabled
-                        >
-                            <FontAwesomeIcon
-                                icon={faPaperPlane}
-                                className="size-3.5"
-                            />
-                        </Button>
-                    </div>
-                    <div className="text-[10px] text-muted-foreground text-center">
-                        現在は受信のみ対応です（送信機能は次フェーズ）
-                    </div>
+                    </Button>
                 </div>
-            </div>
+                {form.errors.content && (
+                    <div className="text-[11px] text-destructive text-center">
+                        {form.errors.content}
+                    </div>
+                )}
+            </form>
         </div>
     );
 }

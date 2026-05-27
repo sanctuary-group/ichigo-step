@@ -26,6 +26,48 @@ class LineClient
         return $this->http()->get(self::BASE_URL."/v2/bot/profile/{$userId}")->throw()->json();
     }
 
+    /**
+     * Push messages to a single LINE user.
+     *
+     * @param  array<int, array<string, mixed>>  $messages
+     * @return array{request_id: ?string, body: array}
+     */
+    public function pushMessage(string $toUserId, array $messages): array
+    {
+        $response = $this->http()
+            ->post(self::BASE_URL.'/v2/bot/message/push', [
+                'to' => $toUserId,
+                'messages' => $messages,
+            ])
+            ->throw();
+
+        return [
+            'request_id' => $response->header('X-Line-Request-Id') ?: null,
+            'body' => $response->json() ?? [],
+        ];
+    }
+
+    /**
+     * Reply messages using a reply token (free, no quota).
+     *
+     * @param  array<int, array<string, mixed>>  $messages
+     * @return array{request_id: ?string, body: array}
+     */
+    public function replyMessage(string $replyToken, array $messages): array
+    {
+        $response = $this->http()
+            ->post(self::BASE_URL.'/v2/bot/message/reply', [
+                'replyToken' => $replyToken,
+                'messages' => $messages,
+            ])
+            ->throw();
+
+        return [
+            'request_id' => $response->header('X-Line-Request-Id') ?: null,
+            'body' => $response->json() ?? [],
+        ];
+    }
+
     private function http()
     {
         return Http::withToken($this->accessToken)

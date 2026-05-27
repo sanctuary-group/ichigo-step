@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\Settings\ChannelController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -29,6 +30,8 @@ Route::middleware('auth')->group(function () {
         ->name('settings.channels.test');
 
     Route::get('/chat', [ChatController::class, 'index'])->name('chat');
+    Route::post('/chat/{friend}/messages', [MessageController::class, 'store'])
+        ->name('chat.messages.store');
 
     // サイドバー項目の placeholder（B-3b 以降で順次実装）
     $placeholderRoutes = [
