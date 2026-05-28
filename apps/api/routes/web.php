@@ -10,6 +10,7 @@ use App\Http\Controllers\ChatManagementController;
 use App\Http\Controllers\ChatStatusController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\FriendTagController;
+use App\Http\Controllers\GreetingController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\Settings\ChannelController;
@@ -77,6 +78,16 @@ Route::middleware('auth')->group(function () {
     Route::post('scenarios/upload-image', [ScenarioController::class, 'uploadImage'])->name('scenarios.uploadImage');
     Route::patch('scenarios/{scenario}/toggle-active', [ScenarioController::class, 'toggleActive'])->name('scenarios.toggleActive');
     Route::post('scenarios/{scenario}/manual-enroll', [ScenarioController::class, 'manualEnroll'])->name('scenarios.manualEnroll');
+
+    Route::get('greetings', fn () => redirect('/greetings/new-friend'));
+    Route::get('greetings/new-friend', fn (\Illuminate\Http\Request $r) => app(GreetingController::class)->show($r, 'new_friend'))->name('greetings.newFriend');
+    Route::patch('greetings/new-friend', fn (\Illuminate\Http\Request $r) => app(GreetingController::class)->update($r, 'new_friend'))->name('greetings.newFriend.update');
+    Route::get('greetings/existing', fn (\Illuminate\Http\Request $r) => app(GreetingController::class)->show($r, 'existing'))->name('greetings.existing');
+    Route::patch('greetings/existing', fn (\Illuminate\Http\Request $r) => app(GreetingController::class)->update($r, 'existing'))->name('greetings.existing.update');
+    Route::post('greetings/existing/send', fn (\Illuminate\Http\Request $r) => app(GreetingController::class)->sendExisting($r, 'existing'))->name('greetings.existing.send');
+    Route::get('greetings/unblock', fn (\Illuminate\Http\Request $r) => app(GreetingController::class)->show($r, 'unblock'))->name('greetings.unblock');
+    Route::patch('greetings/unblock', fn (\Illuminate\Http\Request $r) => app(GreetingController::class)->update($r, 'unblock'))->name('greetings.unblock.update');
+    Route::post('greetings/upload-image', [GreetingController::class, 'uploadImage'])->name('greetings.uploadImage');
     Route::resource('scenario-folders', ScenarioFolderController::class)
         ->only(['store', 'update', 'destroy']);
 
@@ -101,9 +112,6 @@ Route::middleware('auth')->group(function () {
 
     // サイドバー項目の placeholder（B-3b 以降で順次実装）
     $placeholderRoutes = [
-        '/greetings' => 'あいさつメッセージ',
-        '/greetings/existing' => 'あいさつメッセージ（既存友だち用）',
-        '/greetings/unblock' => 'あいさつメッセージ（ブロック解除友だち用）',
         '/rich-menus' => 'リッチメニュー',
         '/forms' => 'フォーム作成',
         '/auto-replies' => '自動応答',

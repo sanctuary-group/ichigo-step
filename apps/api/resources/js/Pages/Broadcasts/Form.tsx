@@ -1,4 +1,4 @@
-import { Head, Link, router, useForm, usePage } from "@inertiajs/react";
+import { Head, Link, useForm, usePage } from "@inertiajs/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCalendar,
@@ -607,8 +607,8 @@ function ImageUploader({
                 </p>
             )}
             <p className="text-xs text-muted-foreground">
-                LINE で配信する画像は HTTPS の公開 URL
-                が必要です（cloudflared トンネル等を利用してください）。
+                ※ローカル環境では cloudflared トンネルが起動し、`LINE_PUBLIC_BASE_URL`
+                が現在のトンネル URL に一致している必要があります。
             </p>
         </div>
     );

@@ -56,10 +56,14 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "ステップ配信", href: "/scenarios", icon: faStairs },
       {
         label: "あいさつメッセージ",
-        href: "/greetings",
+        href: "/greetings/new-friend",
         icon: faUserPlus,
         children: [
-          { label: "新規友だち用", href: "/greetings", icon: faUserPlus },
+          {
+            label: "新規友だち用",
+            href: "/greetings/new-friend",
+            icon: faUserPlus,
+          },
           {
             label: "既存友だち用",
             href: "/greetings/existing",

@@ -5,6 +5,7 @@ namespace App\Jobs\Line;
 use App\Models\Friend;
 use App\Models\LineChannel;
 use App\Models\Message;
+use App\Services\GreetingDispatcher;
 use App\Services\Line\LineClient;
 use App\Services\ScenarioEnroller;
 use Illuminate\Bus\Queueable;
@@ -51,6 +52,15 @@ class ProcessLineEventJob implements ShouldQueue
         $profile = $this->fetchProfile($channel, $userId);
         $timestamp = $this->eventTimestamp();
 
+        // 既存友だち or 新規友だちかを判定するために事前ロード
+        $existing = Friend::withoutGlobalScopes()
+            ->where('line_channel_id', $channel->id)
+            ->where('line_user_id', $userId)
+            ->first();
+
+        $isUnblock = $existing && ! $existing->is_following;
+        $isNewFriend = ! $existing;
+
         $friend = Friend::withoutGlobalScopes()->updateOrCreate(
             ['line_channel_id' => $channel->id, 'line_user_id' => $userId],
             [
@@ -66,7 +76,15 @@ class ProcessLineEventJob implements ShouldQueue
             ],
         );
 
-        ScenarioEnroller::enroll($friend, 'friend_add');
+        $replyToken = $this->event['replyToken'] ?? null;
+
+        if ($isNewFriend) {
+            GreetingDispatcher::dispatch($friend, $channel, 'new_friend', $replyToken);
+            ScenarioEnroller::enroll($friend, 'friend_add');
+        } elseif ($isUnblock) {
+            GreetingDispatcher::dispatch($friend, $channel, 'unblock', $replyToken);
+            // ブロック解除も友だち追加トリガーシナリオは発火させない (再度走らないように)
+        }
     }
 
     private function handleUnfollow(LineChannel $channel): void
