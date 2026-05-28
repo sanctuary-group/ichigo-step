@@ -3,6 +3,8 @@
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\BroadcastController;
+use App\Http\Controllers\ScenarioController;
+use App\Http\Controllers\ScenarioFolderController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ChatManagementController;
 use App\Http\Controllers\ChatStatusController;
@@ -66,6 +68,18 @@ Route::middleware('auth')->group(function () {
     Route::post('broadcasts/{broadcast}/send-now', [BroadcastController::class, 'sendNow'])->name('broadcasts.sendNow');
     Route::post('broadcasts/upload-image', [BroadcastController::class, 'uploadImage'])->name('broadcasts.uploadImage');
 
+    Route::get('scenarios', [ScenarioController::class, 'index'])->name('scenarios.index');
+    Route::get('scenarios/create', [ScenarioController::class, 'create'])->name('scenarios.create');
+    Route::post('scenarios', [ScenarioController::class, 'store'])->name('scenarios.store');
+    Route::get('scenarios/{scenario}/edit', [ScenarioController::class, 'edit'])->name('scenarios.edit');
+    Route::patch('scenarios/{scenario}', [ScenarioController::class, 'update'])->name('scenarios.update');
+    Route::delete('scenarios/{scenario}', [ScenarioController::class, 'destroy'])->name('scenarios.destroy');
+    Route::post('scenarios/upload-image', [ScenarioController::class, 'uploadImage'])->name('scenarios.uploadImage');
+    Route::patch('scenarios/{scenario}/toggle-active', [ScenarioController::class, 'toggleActive'])->name('scenarios.toggleActive');
+    Route::post('scenarios/{scenario}/manual-enroll', [ScenarioController::class, 'manualEnroll'])->name('scenarios.manualEnroll');
+    Route::resource('scenario-folders', ScenarioFolderController::class)
+        ->only(['store', 'update', 'destroy']);
+
     Route::get('friends', [FriendController::class, 'index'])->name('friends.index');
     Route::patch('friends/{friend}', [FriendController::class, 'update'])
         ->name('friends.update');
@@ -87,7 +101,6 @@ Route::middleware('auth')->group(function () {
 
     // サイドバー項目の placeholder（B-3b 以降で順次実装）
     $placeholderRoutes = [
-        '/scenarios' => 'ステップ配信',
         '/greetings' => 'あいさつメッセージ',
         '/greetings/existing' => 'あいさつメッセージ（既存友だち用）',
         '/greetings/unblock' => 'あいさつメッセージ（ブロック解除友だち用）',

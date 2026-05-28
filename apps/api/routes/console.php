@@ -11,3 +11,7 @@ Artisan::command('inspire', function () {
 Schedule::command('broadcasts:process-scheduled')
     ->everyMinute()
     ->withoutOverlapping(5);
+
+Schedule::command('scenarios:process-deliveries')
+    ->everyMinute()
+    ->withoutOverlapping(5);

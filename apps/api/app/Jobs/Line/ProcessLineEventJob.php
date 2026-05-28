@@ -6,6 +6,7 @@ use App\Models\Friend;
 use App\Models\LineChannel;
 use App\Models\Message;
 use App\Services\Line\LineClient;
+use App\Services\ScenarioEnroller;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -50,7 +51,7 @@ class ProcessLineEventJob implements ShouldQueue
         $profile = $this->fetchProfile($channel, $userId);
         $timestamp = $this->eventTimestamp();
 
-        Friend::withoutGlobalScopes()->updateOrCreate(
+        $friend = Friend::withoutGlobalScopes()->updateOrCreate(
             ['line_channel_id' => $channel->id, 'line_user_id' => $userId],
             [
                 'organization_id' => $channel->organization_id,
@@ -64,6 +65,8 @@ class ProcessLineEventJob implements ShouldQueue
                 'pending_reply_received_at' => isset($this->event['replyToken']) ? $timestamp : null,
             ],
         );
+
+        ScenarioEnroller::enroll($friend, 'friend_add');
     }
 
     private function handleUnfollow(LineChannel $channel): void
