@@ -785,27 +785,18 @@ function DebugDialog({
     friends: EnrollableFriend[];
     enrolledFriendIds: number[];
 }) {
-    const [friendId, setFriendId] = useState<number | null>(
-        friends[0]?.id ?? null,
-    );
     const [submitting, setSubmitting] = useState(false);
-    const enrolledSet = useMemo(
-        () => new Set(enrolledFriendIds),
-        [enrolledFriendIds],
+    const enrolledCount = useMemo(
+        () =>
+            friends.filter((f) => enrolledFriendIds.includes(f.id)).length,
+        [friends, enrolledFriendIds],
     );
-
-    useEffect(() => {
-        if (open && friendId === null && friends[0]) {
-            setFriendId(friends[0].id);
-        }
-    }, [open, friends, friendId]);
 
     const submit = () => {
-        if (!friendId) return;
         setSubmitting(true);
         router.post(
             `/scenarios/${scenarioId}/manual-enroll`,
-            { friend_id: friendId },
+            {},
             {
                 preserveScroll: true,
                 onFinish: () => setSubmitting(false),
@@ -826,43 +817,39 @@ function DebugDialog({
                 </DialogTitle>
                 <div className="space-y-4 pt-2">
                     <p className="text-xs text-muted-foreground">
-                        選択した友だちを、トリガー条件を無視してこのシナリオに即時 enroll
-                        します。既に enroll 済みの場合はリセットされて step 1 から再開します。
+                        このシナリオの LINE
+                        チャネルに紐付く有効な友だち
+                        <span className="font-bold mx-0.5">全員</span>
+                        を、トリガー条件を無視して即時 enroll
+                        します。既に enroll 済みの友だちはリセットされて step 1
+                        から再開します。
                     </p>
 
                     {friends.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-destructive">
                             このシナリオの LINE
                             チャネルに紐付くアクティブな友だちがいません。
                         </p>
                     ) : (
-                        <div className="space-y-1.5">
-                            <Label className="text-sm font-bold">
-                                友だちを選択
-                            </Label>
-                            <select
-                                value={friendId ?? ""}
-                                onChange={(e) =>
-                                    setFriendId(Number(e.target.value))
-                                }
-                                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                            >
-                                {friends.map((f) => {
-                                    const name =
-                                        f.system_display_name ||
-                                        f.display_name ||
-                                        "(名前未取得)";
-                                    const enrolled = enrolledSet.has(f.id);
-                                    return (
-                                        <option key={f.id} value={f.id}>
-                                            {name}
-                                            {enrolled
-                                                ? " (enroll 済み → リセット)"
-                                                : ""}
-                                        </option>
-                                    );
-                                })}
-                            </select>
+                        <div className="rounded-md bg-muted/40 px-4 py-3 space-y-1 text-sm">
+                            <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">
+                                    対象友だち数:
+                                </span>
+                                <span className="font-bold tabular-nums">
+                                    {friends.length} 名
+                                </span>
+                            </div>
+                            {enrolledCount > 0 && (
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="text-muted-foreground">
+                                        うち enroll 済み (リセット対象):
+                                    </span>
+                                    <span className="tabular-nums">
+                                        {enrolledCount} 名
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -878,10 +865,12 @@ function DebugDialog({
                         <Button
                             type="button"
                             onClick={submit}
-                            disabled={!friendId || submitting}
+                            disabled={friends.length === 0 || submitting}
                             className="bg-orange-500 hover:bg-orange-600 text-white"
                         >
-                            {submitting ? "開始中..." : "開始"}
+                            {submitting
+                                ? "開始中..."
+                                : `${friends.length} 名に開始`}
                         </Button>
                     </div>
                 </div>

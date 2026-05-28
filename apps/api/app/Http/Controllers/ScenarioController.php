@@ -136,38 +136,38 @@ class ScenarioController extends Controller
 
     public function manualEnroll(Request $request, Scenario $scenario): RedirectResponse
     {
-        $validated = $request->validate([
-            'friend_id' => ['required', 'integer', 'exists:friends,id'],
-        ]);
-
         if ($scenario->steps()->count() === 0) {
             return back()->with('flash.error', 'ステップが登録されていないため開始できません');
         }
 
-        $friend = Friend::find($validated['friend_id']);
-        if (! $friend || $friend->line_channel_id !== $scenario->line_channel_id) {
-            return back()->with('flash.error', 'このシナリオの LINE チャネルに属する友だちではありません');
-        }
-        if (! $friend->is_following) {
-            return back()->with('flash.error', 'ブロック中の友だちには開始できません');
-        }
-
         $firstStep = $scenario->steps()->orderBy('step_order')->first();
-
         $now = now();
         $nextDeliveryAt = $firstStep->computeDeliveryAt($now);
-        FriendScenario::withoutGlobalScopes()->updateOrCreate(
-            ['friend_id' => $friend->id, 'scenario_id' => $scenario->id],
-            [
-                'organization_id' => $friend->organization_id,
-                'current_step_order' => 0,
-                'status' => 'active',
-                'started_at' => $now,
-                'next_delivery_at' => $nextDeliveryAt,
-                'completed_at' => null,
-                'error_message' => null,
-            ],
-        );
+
+        $friends = Friend::where('line_channel_id', $scenario->line_channel_id)
+            ->where('is_following', true)
+            ->get();
+
+        if ($friends->isEmpty()) {
+            return back()->with('flash.error', 'このシナリオの LINE チャネルに有効な友だちがいません');
+        }
+
+        $count = 0;
+        foreach ($friends as $friend) {
+            FriendScenario::withoutGlobalScopes()->updateOrCreate(
+                ['friend_id' => $friend->id, 'scenario_id' => $scenario->id],
+                [
+                    'organization_id' => $friend->organization_id,
+                    'current_step_order' => 0,
+                    'status' => 'active',
+                    'started_at' => $now,
+                    'next_delivery_at' => $nextDeliveryAt,
+                    'completed_at' => null,
+                    'error_message' => null,
+                ],
+            );
+            $count++;
+        }
 
         $when = $nextDeliveryAt->equalTo($now)
             ? '次回 cron (約 1 分以内)'
@@ -175,7 +175,7 @@ class ScenarioController extends Controller
 
         return back()->with(
             'flash.success',
-            "「{$friend->display_name}」をシナリオに登録しました。1 通目は {$when} に配信されます",
+            "{$count} 名の友だちをシナリオに登録しました。1 通目は {$when} に配信されます",
         );
     }
 
