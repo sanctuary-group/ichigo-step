@@ -6,6 +6,7 @@ use App\Models\Concerns\BelongsToOrganization;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'organization_id',
@@ -16,6 +17,9 @@ use Illuminate\Database\Eloquent\Model;
     'channel_access_token',
     'liff_id',
     'is_active',
+    'risk_level',
+    'last_health_checked_at',
+    'last_health_error',
 ])]
 #[Hidden(['channel_secret', 'channel_access_token'])]
 class LineChannel extends Model
@@ -28,6 +32,12 @@ class LineChannel extends Model
             'channel_secret' => 'encrypted',
             'channel_access_token' => 'encrypted',
             'is_active' => 'boolean',
+            'last_health_checked_at' => 'datetime',
         ];
+    }
+
+    public function healthLogs(): HasMany
+    {
+        return $this->hasMany(ChannelHealthLog::class);
     }
 }

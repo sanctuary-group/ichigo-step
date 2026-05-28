@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
+use App\Http\Controllers\BanDetectionController;
 use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\ScenarioController;
 use App\Http\Controllers\ScenarioFolderController;
@@ -88,6 +89,10 @@ Route::middleware('auth')->group(function () {
     Route::get('greetings/unblock', fn (\Illuminate\Http\Request $r) => app(GreetingController::class)->show($r, 'unblock'))->name('greetings.unblock');
     Route::patch('greetings/unblock', fn (\Illuminate\Http\Request $r) => app(GreetingController::class)->update($r, 'unblock'))->name('greetings.unblock.update');
     Route::post('greetings/upload-image', [GreetingController::class, 'uploadImage'])->name('greetings.uploadImage');
+
+    Route::get('ban-detection', [BanDetectionController::class, 'index'])->name('banDetection.index');
+    Route::post('ban-detection/check', [BanDetectionController::class, 'runCheck'])->name('banDetection.check');
+    Route::post('ban-detection/switch', [BanDetectionController::class, 'switchActive'])->name('banDetection.switch');
     Route::resource('scenario-folders', ScenarioFolderController::class)
         ->only(['store', 'update', 'destroy']);
 

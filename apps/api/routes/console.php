@@ -15,3 +15,7 @@ Schedule::command('broadcasts:process-scheduled')
 Schedule::command('scenarios:process-deliveries')
     ->everyMinute()
     ->withoutOverlapping(5);
+
+Schedule::command('channels:check-health')
+    ->everyMinute()
+    ->withoutOverlapping(5);

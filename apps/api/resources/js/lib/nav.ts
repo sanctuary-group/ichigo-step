@@ -11,6 +11,7 @@ import {
   faRobot,
   faQrcode,
   faDatabase,
+  faShieldHalved,
   faGear,
   faListCheck,
   faTag,
@@ -85,6 +86,11 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "フォーム作成", href: "/forms", icon: faRectangleList },
       { label: "自動応答", href: "/auto-replies", icon: faRobot },
       { label: "QRコードアクション", href: "/qr-actions", icon: faQrcode },
+      {
+        label: "BAN検知 & 切替",
+        href: "/ban-detection",
+        icon: faShieldHalved,
+      },
       {
         label: "データ管理",
         href: "/data-management",
