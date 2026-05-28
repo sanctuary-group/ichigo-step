@@ -133,7 +133,7 @@ class DeliverScenarioStepJob implements ShouldQueue
             $fs->forceFill([
                 'current_step_order' => $nextStep->step_order,
                 'status' => 'active',
-                'next_delivery_at' => now()->addMinutes($followingStep->delay_minutes),
+                'next_delivery_at' => $followingStep->computeDeliveryAt(now()),
             ])->save();
         } else {
             $fs->forceFill([

@@ -154,22 +154,24 @@ class ScenarioController extends Controller
 
         $firstStep = $scenario->steps()->orderBy('step_order')->first();
 
+        $now = now();
+        $nextDeliveryAt = $firstStep->computeDeliveryAt($now);
         FriendScenario::withoutGlobalScopes()->updateOrCreate(
             ['friend_id' => $friend->id, 'scenario_id' => $scenario->id],
             [
                 'organization_id' => $friend->organization_id,
                 'current_step_order' => 0,
                 'status' => 'active',
-                'started_at' => now(),
-                'next_delivery_at' => now()->addMinutes($firstStep->delay_minutes),
+                'started_at' => $now,
+                'next_delivery_at' => $nextDeliveryAt,
                 'completed_at' => null,
                 'error_message' => null,
             ],
         );
 
-        $when = $firstStep->delay_minutes === 0
+        $when = $nextDeliveryAt->equalTo($now)
             ? '次回 cron (約 1 分以内)'
-            : "{$firstStep->delay_minutes} 分後";
+            : $nextDeliveryAt->format('Y/m/d H:i');
 
         return back()->with(
             'flash.success',

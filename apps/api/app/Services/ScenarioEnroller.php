@@ -32,14 +32,15 @@ class ScenarioEnroller
                 continue;
             }
 
+            $now = Carbon::now();
             FriendScenario::withoutGlobalScopes()->updateOrCreate(
                 ['friend_id' => $friend->id, 'scenario_id' => $scenario->id],
                 [
                     'organization_id' => $friend->organization_id,
                     'current_step_order' => 0,
                     'status' => 'active',
-                    'started_at' => Carbon::now(),
-                    'next_delivery_at' => Carbon::now()->addMinutes($firstStep->delay_minutes),
+                    'started_at' => $now,
+                    'next_delivery_at' => $firstStep->computeDeliveryAt($now),
                     'completed_at' => null,
                     'error_message' => null,
                 ],
