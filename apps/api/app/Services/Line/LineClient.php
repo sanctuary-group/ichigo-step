@@ -90,6 +90,62 @@ class LineClient
         ];
     }
 
+    /**
+     * リッチメニューを作成し、LINE が発行した richMenuId を返す。
+     *
+     * @param  array<string, mixed>  $richMenu  size / selected / name / chatBarText / areas
+     */
+    public function createRichMenu(array $richMenu): string
+    {
+        $response = $this->http()
+            ->post(self::BASE_URL.'/v2/bot/richmenu', $richMenu)
+            ->throw();
+
+        return (string) $response->json('richMenuId');
+    }
+
+    /**
+     * リッチメニュー画像をアップロードする（api-data ドメイン）。
+     */
+    public function uploadRichMenuImage(string $richMenuId, string $bytes, string $contentType): void
+    {
+        Http::withToken($this->accessToken)
+            ->withBody($bytes, $contentType)
+            ->timeout(30)
+            ->post("https://api-data.line.me/v2/bot/richmenu/{$richMenuId}/content")
+            ->throw();
+    }
+
+    /**
+     * デフォルトリッチメニュー（全友だち）に設定する。
+     */
+    public function setDefaultRichMenu(string $richMenuId): void
+    {
+        $this->http()
+            ->post(self::BASE_URL."/v2/bot/user/all/richmenu/{$richMenuId}")
+            ->throw();
+    }
+
+    /**
+     * デフォルトリッチメニューの設定を解除する。
+     */
+    public function cancelDefaultRichMenu(): void
+    {
+        $this->http()
+            ->delete(self::BASE_URL.'/v2/bot/user/all/richmenu')
+            ->throw();
+    }
+
+    /**
+     * リッチメニューを削除する。
+     */
+    public function deleteRichMenu(string $richMenuId): void
+    {
+        $this->http()
+            ->delete(self::BASE_URL."/v2/bot/richmenu/{$richMenuId}")
+            ->throw();
+    }
+
     private function http()
     {
         return Http::withToken($this->accessToken)

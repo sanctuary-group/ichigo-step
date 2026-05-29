@@ -14,6 +14,8 @@ use App\Http\Controllers\FriendTagController;
 use App\Http\Controllers\GreetingController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\RichMenuController;
+use App\Http\Controllers\RichMenuFolderController;
 use App\Http\Controllers\Settings\ChannelController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TemplateController;
@@ -90,6 +92,19 @@ Route::middleware('auth')->group(function () {
     Route::patch('greetings/unblock', fn (\Illuminate\Http\Request $r) => app(GreetingController::class)->update($r, 'unblock'))->name('greetings.unblock.update');
     Route::post('greetings/upload-image', [GreetingController::class, 'uploadImage'])->name('greetings.uploadImage');
 
+    Route::get('rich-menus', [RichMenuController::class, 'index'])->name('richMenus.index');
+    Route::get('rich-menus/create', [RichMenuController::class, 'create'])->name('richMenus.create');
+    Route::post('rich-menus', [RichMenuController::class, 'store'])->name('richMenus.store');
+    Route::get('rich-menus/{richMenu}/edit', [RichMenuController::class, 'edit'])->name('richMenus.edit');
+    Route::patch('rich-menus/{richMenu}', [RichMenuController::class, 'update'])->name('richMenus.update');
+    Route::delete('rich-menus/{richMenu}', [RichMenuController::class, 'destroy'])->name('richMenus.destroy');
+    Route::post('rich-menus/{richMenu}/publish', [RichMenuController::class, 'publish'])->name('richMenus.publish');
+    Route::post('rich-menus/{richMenu}/unpublish', [RichMenuController::class, 'unpublish'])->name('richMenus.unpublish');
+    Route::post('rich-menus/upload-image', [RichMenuController::class, 'uploadImage'])->name('richMenus.uploadImage');
+    Route::resource('rich-menu-folders', RichMenuFolderController::class)
+        ->only(['store', 'update', 'destroy'])
+        ->names('richMenuFolders');
+
     Route::get('ban-detection', [BanDetectionController::class, 'index'])->name('banDetection.index');
     Route::post('ban-detection/check', [BanDetectionController::class, 'runCheck'])->name('banDetection.check');
     Route::post('ban-detection/switch', [BanDetectionController::class, 'switchActive'])->name('banDetection.switch');
@@ -117,7 +132,6 @@ Route::middleware('auth')->group(function () {
 
     // サイドバー項目の placeholder（B-3b 以降で順次実装）
     $placeholderRoutes = [
-        '/rich-menus' => 'リッチメニュー',
         '/forms' => 'フォーム作成',
         '/auto-replies' => '自動応答',
         '/qr-actions' => 'QR コードアクション',
