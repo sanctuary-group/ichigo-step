@@ -5,6 +5,7 @@ namespace App\Jobs\Line;
 use App\Models\Friend;
 use App\Models\LineChannel;
 use App\Models\Message;
+use App\Services\AutoReplyDispatcher;
 use App\Services\GreetingDispatcher;
 use App\Services\Line\LineClient;
 use App\Services\ScenarioEnroller;
@@ -85,6 +86,11 @@ class ProcessLineEventJob implements ShouldQueue
             GreetingDispatcher::dispatch($friend, $channel, 'unblock', $replyToken);
             // ブロック解除も友だち追加トリガーシナリオは発火させない (再度走らないように)
         }
+
+        // 友だち追加トリガーの自動応答（あいさつが reply token を消費するため push で送る）
+        if ($isNewFriend || $isUnblock) {
+            AutoReplyDispatcher::handleFollow($friend, $channel, null);
+        }
     }
 
     private function handleUnfollow(LineChannel $channel): void
@@ -138,6 +144,16 @@ class ProcessLineEventJob implements ShouldQueue
                 'pending_reply_token' => $this->event['replyToken'] ?? null,
                 'pending_reply_received_at' => isset($this->event['replyToken']) ? $timestamp : null,
             ])->save();
+
+            // テキスト受信時のみ自動応答を評価（Webhook 再送での二重応答を避けるため新規作成時のみ）
+            if ($messageType === 'text') {
+                AutoReplyDispatcher::handleMessage(
+                    $friend,
+                    $channel,
+                    (string) $content,
+                    $this->event['replyToken'] ?? null,
+                );
+            }
         }
     }
 

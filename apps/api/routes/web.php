@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
+use App\Http\Controllers\AutoReplyController;
+use App\Http\Controllers\AutoReplyFolderController;
 use App\Http\Controllers\BanDetectionController;
 use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\ScenarioController;
@@ -95,6 +97,18 @@ Route::middleware('auth')->group(function () {
     Route::patch('greetings/unblock', fn (\Illuminate\Http\Request $r) => app(GreetingController::class)->update($r, 'unblock'))->name('greetings.unblock.update');
     Route::post('greetings/upload-image', [GreetingController::class, 'uploadImage'])->name('greetings.uploadImage');
 
+    Route::get('auto-replies', [AutoReplyController::class, 'index'])->name('autoReplies.index');
+    Route::get('auto-replies/create', [AutoReplyController::class, 'create'])->name('autoReplies.create');
+    Route::post('auto-replies', [AutoReplyController::class, 'store'])->name('autoReplies.store');
+    Route::get('auto-replies/{autoReply}/edit', [AutoReplyController::class, 'edit'])->name('autoReplies.edit');
+    Route::patch('auto-replies/{autoReply}', [AutoReplyController::class, 'update'])->name('autoReplies.update');
+    Route::delete('auto-replies/{autoReply}', [AutoReplyController::class, 'destroy'])->name('autoReplies.destroy');
+    Route::patch('auto-replies/{autoReply}/toggle-active', [AutoReplyController::class, 'toggleActive'])->name('autoReplies.toggleActive');
+    Route::post('auto-replies/upload-image', [AutoReplyController::class, 'uploadImage'])->name('autoReplies.uploadImage');
+    Route::resource('auto-reply-folders', AutoReplyFolderController::class)
+        ->only(['store', 'update', 'destroy'])
+        ->names('autoReplyFolders');
+
     Route::get('forms', [FormController::class, 'index'])->name('forms.index');
     Route::get('forms/create', [FormController::class, 'create'])->name('forms.create');
     Route::post('forms', [FormController::class, 'store'])->name('forms.store');
@@ -148,7 +162,6 @@ Route::middleware('auth')->group(function () {
 
     // サイドバー項目の placeholder（B-3b 以降で順次実装）
     $placeholderRoutes = [
-        '/auto-replies' => '自動応答',
         '/qr-actions' => 'QR コードアクション',
         '/data-management' => 'データ管理',
         '/data-management/friend-fields' => '友だち情報管理',
