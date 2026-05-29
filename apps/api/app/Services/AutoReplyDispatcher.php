@@ -7,6 +7,7 @@ use App\Models\Friend;
 use App\Models\LineChannel;
 use App\Models\Message;
 use App\Services\Line\LineClient;
+use App\Services\Line\Stealth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -66,6 +67,9 @@ class AutoReplyDispatcher
         if (! $payload) {
             return;
         }
+
+        // ステルス: 同一文面の連続送信を避けるため友だちごとに僅かに変える
+        $payload = Stealth::varyTextMessage($payload, $friend->id);
 
         $client = LineClient::forChannel($channel);
 

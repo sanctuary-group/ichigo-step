@@ -6,6 +6,7 @@ use App\Models\FriendScenario;
 use App\Models\Message;
 use App\Models\ScenarioStep;
 use App\Services\Line\LineClient;
+use App\Services\Line\Stealth;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -91,7 +92,7 @@ class DeliverScenarioStepJob implements ShouldQueue
 
         try {
             $result = LineClient::forChannel($channel)
-                ->pushMessage($friend->line_user_id, [$payload]);
+                ->pushMessage($friend->line_user_id, [Stealth::varyTextMessage($payload, $friend->id)]);
         } catch (Throwable $e) {
             Log::warning('Scenario step push failed', [
                 'friend_scenario_id' => $fs->id,

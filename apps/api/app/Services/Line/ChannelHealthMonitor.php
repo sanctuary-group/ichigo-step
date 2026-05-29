@@ -4,7 +4,9 @@ namespace App\Services\Line;
 
 use App\Models\ChannelHealthLog;
 use App\Models\LineChannel;
+use App\Models\Message;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class ChannelHealthMonitor
@@ -47,6 +49,23 @@ class ChannelHealthMonitor
             $riskLevel = 'warning';
         }
 
+        // ④ 送信量警告: HTTP 正常でも直近1時間の送信が閾値超なら warning に引き上げる
+        if ($riskLevel === 'normal') {
+            $threshold = (int) config('line.high_volume_threshold', 5000);
+            if ($threshold > 0) {
+                $sent1h = Message::withoutGlobalScopes()
+                    ->where('line_channel_id', $channel->id)
+                    ->where('direction', 'outgoing')
+                    ->where('created_at', '>=', now()->subHour())
+                    ->count();
+                if ($sent1h > $threshold) {
+                    $riskLevel = 'warning';
+                    $errorCode = 'high_volume';
+                    $errorMessage = "直近1時間で {$sent1h} 通送信（閾値 {$threshold}）";
+                }
+            }
+        }
+
         $log = ChannelHealthLog::withoutGlobalScopes()->create([
             'organization_id' => $channel->organization_id,
             'line_channel_id' => $channel->id,
@@ -63,7 +82,38 @@ class ChannelHealthMonitor
             'last_health_error' => $riskLevel === 'normal' ? null : $errorMessage,
         ])->save();
 
+        if ($riskLevel === 'danger') {
+            $this->notifyDanger($channel, $log);
+        }
+
         return $log;
+    }
+
+    /**
+     * danger（BAN 疑い）検出時にログ出力 + 任意の Webhook 通知。
+     */
+    private function notifyDanger(LineChannel $channel, ChannelHealthLog $log): void
+    {
+        Log::error('⚠️ BAN検知', [
+            'channel_id' => $channel->id,
+            'name' => $channel->name,
+            'http_status' => $log->http_status,
+            'error' => $log->error_message,
+        ]);
+
+        $webhook = config('line.ban_alert_webhook_url');
+        if (! $webhook) {
+            return;
+        }
+
+        try {
+            Http::timeout(5)->post($webhook, [
+                'text' => "⚠️ LINEチャネル「{$channel->name}」で danger を検出 (HTTP {$log->http_status})。"
+                    .'BAN / トークン無効の可能性があります。予備チャネルへの切替を検討してください。',
+            ]);
+        } catch (Throwable $e) {
+            Log::warning('BAN alert webhook failed', ['error' => $e->getMessage()]);
+        }
     }
 
     /**

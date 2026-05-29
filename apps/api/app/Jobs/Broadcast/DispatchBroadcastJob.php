@@ -6,6 +6,7 @@ use App\Models\Broadcast;
 use App\Models\Friend;
 use App\Models\Message;
 use App\Services\Line\LineClient;
+use App\Services\Line\Stealth;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -79,11 +80,17 @@ class DispatchBroadcastJob implements ShouldQueue
         $dbContent = $this->buildDbContent($broadcast);
         $preview = $this->buildPreview($broadcast);
 
+        $batchIndex = 0;
+
         $query->orderBy('id')
-            ->chunkById(500, function ($chunk) use ($client, $message, $broadcast, $messageType, $dbContent, $preview, &$successCount, &$lastError) {
+            ->chunkById(500, function ($chunk) use ($client, $message, $broadcast, $messageType, $dbContent, $preview, $totalCount, &$successCount, &$lastError, &$batchIndex) {
                 $userIds = $chunk->pluck('line_user_id')->all();
+
+                // ステルス: バッチごとに文面を僅かに変えて同一文面の大量送信を避ける
+                $batchMessage = Stealth::varyTextMessage($message, $batchIndex);
+
                 try {
-                    $result = $client->multicast($userIds, [$message]);
+                    $result = $client->multicast($userIds, [$batchMessage]);
                     $successCount += count($userIds);
                     $this->recordMessages($chunk, $broadcast, $messageType, $dbContent, $preview, $result['request_id'] ?? null);
                 } catch (Throwable $e) {
@@ -93,7 +100,13 @@ class DispatchBroadcastJob implements ShouldQueue
                         'error' => $e->getMessage(),
                     ]);
                 }
-                usleep(200_000);
+
+                // ステルス: 送信規模に応じて時間分散（ジッター付き）。無効時は従来の 200ms。
+                $delayMs = Stealth::enabled()
+                    ? Stealth::staggerDelayMs($totalCount)
+                    : 200;
+                usleep($delayMs * 1000);
+                $batchIndex++;
             });
 
         $broadcast->forceFill([

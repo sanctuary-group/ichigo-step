@@ -9,6 +9,7 @@ use App\Models\LineChannel;
 use App\Models\Message;
 use App\Models\Scenario;
 use App\Services\Line\LineClient;
+use App\Services\Line\Stealth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -63,11 +64,15 @@ class GreetingDispatcher
 
         $client = LineClient::forChannel($channel);
 
-        $query->orderBy('id')->chunkById(500, function ($chunk) use ($greeting, $channel, $client, &$successCount, &$lastError) {
+        $index = 0;
+
+        $query->orderBy('id')->chunkById(500, function ($chunk) use ($greeting, $channel, $client, &$successCount, &$lastError, &$index) {
             // 個別 user の名前を差し込むため multicast ではなく 1 件ずつ push
             foreach ($chunk as $friend) {
                 $payload = self::buildMessagePayload($greeting, $friend);
                 if (! $payload) continue;
+                // ステルス: 友だちごとに文面を僅かに変える
+                $payload = Stealth::varyTextMessage($payload, $index);
                 try {
                     $result = $client->pushMessage($friend->line_user_id, [$payload]);
                     self::recordMessage($greeting, $friend, $channel, $result['request_id'] ?? null);
@@ -79,7 +84,13 @@ class GreetingDispatcher
                         'error' => $e->getMessage(),
                     ]);
                 }
-                usleep(50_000);
+                $index++;
+                // ステルス: ジッター付きの送信間隔（無効時は従来の 50ms）
+                if (Stealth::enabled()) {
+                    Stealth::sleepJitter(50, 150);
+                } else {
+                    usleep(50_000);
+                }
             }
         });
 
