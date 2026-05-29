@@ -13,7 +13,10 @@ use App\Http\Controllers\FriendController;
 use App\Http\Controllers\FriendTagController;
 use App\Http\Controllers\GreetingController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\FormController;
+use App\Http\Controllers\FormFolderController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\PublicFormController;
 use App\Http\Controllers\RichMenuController;
 use App\Http\Controllers\RichMenuFolderController;
 use App\Http\Controllers\Settings\ChannelController;
@@ -92,6 +95,19 @@ Route::middleware('auth')->group(function () {
     Route::patch('greetings/unblock', fn (\Illuminate\Http\Request $r) => app(GreetingController::class)->update($r, 'unblock'))->name('greetings.unblock.update');
     Route::post('greetings/upload-image', [GreetingController::class, 'uploadImage'])->name('greetings.uploadImage');
 
+    Route::get('forms', [FormController::class, 'index'])->name('forms.index');
+    Route::get('forms/create', [FormController::class, 'create'])->name('forms.create');
+    Route::post('forms', [FormController::class, 'store'])->name('forms.store');
+    Route::get('forms/{form}/edit', [FormController::class, 'edit'])->name('forms.edit');
+    Route::get('forms/{form}/responses', [FormController::class, 'responses'])->name('forms.responses');
+    Route::patch('forms/{form}', [FormController::class, 'update'])->name('forms.update');
+    Route::delete('forms/{form}', [FormController::class, 'destroy'])->name('forms.destroy');
+    Route::post('forms/{form}/publish', [FormController::class, 'publish'])->name('forms.publish');
+    Route::post('forms/{form}/unpublish', [FormController::class, 'unpublish'])->name('forms.unpublish');
+    Route::resource('form-folders', FormFolderController::class)
+        ->only(['store', 'update', 'destroy'])
+        ->names('formFolders');
+
     Route::get('rich-menus', [RichMenuController::class, 'index'])->name('richMenus.index');
     Route::get('rich-menus/create', [RichMenuController::class, 'create'])->name('richMenus.create');
     Route::post('rich-menus', [RichMenuController::class, 'store'])->name('richMenus.store');
@@ -132,7 +148,6 @@ Route::middleware('auth')->group(function () {
 
     // サイドバー項目の placeholder（B-3b 以降で順次実装）
     $placeholderRoutes = [
-        '/forms' => 'フォーム作成',
         '/auto-replies' => '自動応答',
         '/qr-actions' => 'QR コードアクション',
         '/data-management' => 'データ管理',
@@ -145,3 +160,7 @@ Route::middleware('auth')->group(function () {
         Route::get($path, fn () => Inertia::render('Placeholder/Index', ['title' => $title]));
     }
 });
+
+// 公開フォーム回答ページ（認証不要）
+Route::get('/f/{token}', [PublicFormController::class, 'show'])->name('publicForm.show');
+Route::post('/f/{token}', [PublicFormController::class, 'submit'])->name('publicForm.submit');

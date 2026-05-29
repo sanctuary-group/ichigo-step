@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // cloudflared / リバースプロキシ経由でも HTTPS を正しく検出させる
+        // （X-Forwarded-Proto を信頼し、アセット URL を https で生成 → 混在コンテンツ防止）
+        $middleware->trustProxies(at: '*');
         $middleware->statefulApi();
         $middleware->web(append: [
             HandleInertiaRequests::class,
