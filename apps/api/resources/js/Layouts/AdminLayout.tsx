@@ -6,9 +6,18 @@ import {
     faShieldHalved,
     faRightFromBracket,
     faCircleUser,
+    faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 type Operator = {
@@ -93,32 +102,57 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                                 運営管理
                             </span>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <div className="text-right hidden sm:block">
-                                <div className="text-sm font-medium leading-tight">
-                                    {operator?.name ?? "—"}
-                                </div>
-                                <div className="text-[11px] text-muted-foreground leading-tight">
-                                    {operator?.role}
-                                </div>
-                            </div>
-                            <FontAwesomeIcon
-                                icon={faCircleUser}
-                                className="size-7 text-muted-foreground"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => router.post("/admin/logout")}
-                                className="grid place-items-center size-9 rounded-md hover:bg-muted text-muted-foreground"
-                                aria-label="ログアウト"
-                                title="ログアウト"
+                        <DropdownMenu>
+                            <DropdownMenuTrigger
+                                render={
+                                    <button
+                                        type="button"
+                                        className="flex items-center gap-2 h-10 pl-2 pr-2.5 rounded-lg hover:bg-muted transition-colors"
+                                        aria-label="運営者メニュー"
+                                    />
+                                }
                             >
                                 <FontAwesomeIcon
-                                    icon={faRightFromBracket}
-                                    className="size-4"
+                                    icon={faCircleUser}
+                                    className="size-7 text-muted-foreground"
                                 />
-                            </button>
-                        </div>
+                                <div className="text-left hidden sm:block">
+                                    <div className="text-sm font-medium leading-tight">
+                                        {operator?.name ?? "—"}
+                                    </div>
+                                    <div className="text-[11px] text-muted-foreground leading-tight">
+                                        {operator?.role}
+                                    </div>
+                                </div>
+                                <FontAwesomeIcon
+                                    icon={faChevronDown}
+                                    className="size-3 text-muted-foreground"
+                                />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56" align="end">
+                                <DropdownMenuLabel>
+                                    <div className="font-medium">
+                                        {operator?.name ?? "—"}
+                                    </div>
+                                    <div className="text-[11px] text-muted-foreground font-normal">
+                                        {operator?.email}
+                                    </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    className="gap-3 py-2.5 text-destructive data-highlighted:text-destructive"
+                                    onClick={() =>
+                                        router.post("/admin/logout")
+                                    }
+                                >
+                                    <FontAwesomeIcon
+                                        icon={faRightFromBracket}
+                                        className="size-4"
+                                    />
+                                    ログアウト
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </header>
 
                     {/* モバイル用ナビ */}
