@@ -26,11 +26,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'verify.line' => VerifyLineSignature::class,
         ]);
 
-        // /admin 配下は運営者ログイン、それ以外は利用者ログインへ誘導
-        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('admin', 'admin/*')
+        // 運営側 管理画面（秘密パス）配下は運営者ログイン、それ以外は利用者ログインへ誘導
+        // config() はリクエスト時に評価（ミドルウェア設定時点では config 未ロードのため）
+        $isAdminPath = fn (Request $request) => $request->is(config('admin.path'), config('admin.path').'/*');
+        $middleware->redirectGuestsTo(fn (Request $request) => $isAdminPath($request)
             ? route('admin.login')
             : route('login'));
-        $middleware->redirectUsersTo(fn (Request $request) => $request->is('admin', 'admin/*')
+        $middleware->redirectUsersTo(fn (Request $request) => $isAdminPath($request)
             ? route('admin.dashboard')
             : '/');
     })

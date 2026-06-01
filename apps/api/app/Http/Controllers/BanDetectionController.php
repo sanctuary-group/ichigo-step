@@ -35,9 +35,39 @@ class BanDetectionController extends Controller
                 'risk_level' => $c->risk_level,
                 'last_health_checked_at' => $c->last_health_checked_at?->toIso8601String(),
                 'last_health_error' => $c->last_health_error,
+                'fallback_channel_id' => $c->fallback_channel_id,
+                'friend_add_url' => $c->friend_add_url,
             ]),
             'logsByChannel' => $grouped,
+            'autoSwitch' => [
+                'enabled' => (bool) config('line.auto_switch_enabled', true),
+                'danger_streak' => (int) config('line.auto_switch_danger_streak', 2),
+            ],
         ]);
+    }
+
+    /**
+     * BAN 検知時の自動切替先（予備チャネル）を設定する。
+     */
+    public function setFallback(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'channel_id' => ['required', 'integer', 'exists:line_channels,id'],
+            'fallback_channel_id' => ['nullable', 'integer', 'exists:line_channels,id', 'different:channel_id'],
+        ]);
+
+        $channel = LineChannel::findOrFail($validated['channel_id']);
+
+        if ($validated['fallback_channel_id'] ?? null) {
+            $fallback = LineChannel::findOrFail($validated['fallback_channel_id']);
+            if ($fallback->organization_id !== $channel->organization_id) {
+                return back()->with('flash.error', '同じ組織のチャネルのみ予備に設定できます');
+            }
+        }
+
+        $channel->update(['fallback_channel_id' => $validated['fallback_channel_id'] ?? null]);
+
+        return back()->with('flash.success', '予備チャネル（自動切替先）を設定しました');
     }
 
     public function runCheck(Request $request, ChannelHealthMonitor $monitor): RedirectResponse

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\QrAction;
+use App\Services\Line\ChannelResolver;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Http\RedirectResponse;
@@ -11,6 +12,8 @@ use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class PublicQrController extends Controller
 {
+    public function __construct(private ChannelResolver $resolver) {}
+
     /**
      * 追跡 URL。読み込み数を加算して LINE 友だち追加 URL へリダイレクトする。
      */
@@ -61,11 +64,15 @@ class PublicQrController extends Controller
     }
 
     /**
-     * チャネルの basic_id から LINE 友だち追加 URL を組み立てる。
+     * 友だち追加 URL を組み立てる。
+     * QR に紐づくチャネルが BAN で停止していれば、予備チャネル（fallback）を辿って
+     * 現在アクティブなチャネルへ自動で誘導する。
      */
     private function friendAddUrl(QrAction $qr): string
     {
-        $basicId = $qr->lineChannel?->basic_id;
+        $channel = $this->resolver->activeFor($qr->lineChannel) ?? $qr->lineChannel;
+        $basicId = $channel?->basic_id;
+
         if ($basicId) {
             // 例: @134zjbyu → https://line.me/R/ti/p/%40134zjbyu
             return 'https://line.me/R/ti/p/'.rawurlencode($basicId);

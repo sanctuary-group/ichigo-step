@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PlanBadge, StatusBadge } from "@/components/admin/badges";
 import { AdminLayout } from "@/Layouts/AdminLayout";
+import { useAdminBase } from "@/lib/admin";
 import { cn } from "@/lib/utils";
 
 type Agency = {
@@ -36,12 +37,13 @@ export default function AgenciesIndex({
     filters,
     planCounts,
 }: PageProps) {
+    const base = useAdminBase();
     const [query, setQuery] = useState(filters.q ?? "");
 
     const apply = (next: Partial<PageProps["filters"]>) => {
         const merged = { ...filters, q: query, ...next };
         router.get(
-            "/admin/agencies",
+            `${base}/agencies`,
             {
                 q: merged.q || undefined,
                 plan: merged.plan !== "all" ? merged.plan : undefined,
@@ -182,7 +184,7 @@ export default function AgenciesIndex({
                                         className="border-b border-border hover:bg-muted/30 cursor-pointer"
                                         onClick={() =>
                                             router.get(
-                                                `/admin/agencies/${a.id}`,
+                                                `${base}/agencies/${a.id}`,
                                             )
                                         }
                                     >

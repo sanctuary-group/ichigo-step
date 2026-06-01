@@ -6,13 +6,15 @@ import { faShieldHalved } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAdminBase } from "@/lib/admin";
 
 export default function AdminLogin() {
+    const base = useAdminBase();
     const form = useForm({ email: "", password: "", remember: false });
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        form.post("/admin/login");
+        form.post(`${base}/login`);
     };
 
     return (

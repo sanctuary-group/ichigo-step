@@ -20,6 +20,7 @@ class StoreChannelRequest extends FormRequest
             'channel_secret' => ['required', 'string', 'max:255'],
             'channel_access_token' => ['required', 'string', 'max:500'],
             'liff_id' => ['nullable', 'string', 'max:100'],
+            'fallback_channel_id' => ['nullable', 'integer', 'exists:line_channels,id'],
         ];
     }
 }

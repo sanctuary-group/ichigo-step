@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlanBadge, StatusBadge } from "@/components/admin/badges";
 import { AdminLayout } from "@/Layouts/AdminLayout";
+import { useAdminBase } from "@/lib/admin";
 
 type Agency = {
     id: number;
@@ -56,6 +57,7 @@ export default function AgencyShow({
     members,
     channels,
 }: PageProps) {
+    const base = useAdminBase();
     const active = agency.status === "active";
 
     const toggleStatus = () => {
@@ -64,7 +66,7 @@ export default function AgencyShow({
             : `「${agency.name}」を再開しますか？`;
         if (!confirm(msg)) return;
         router.patch(
-            `/admin/agencies/${agency.id}/status`,
+            `${base}/agencies/${agency.id}/status`,
             { is_active: !active },
             { preserveScroll: true },
         );
@@ -73,7 +75,7 @@ export default function AgencyShow({
     const changePlan = (plan: string) => {
         if (plan === agency.plan) return;
         router.patch(
-            `/admin/agencies/${agency.id}/plan`,
+            `${base}/agencies/${agency.id}/plan`,
             { plan },
             { preserveScroll: true },
         );
@@ -85,7 +87,7 @@ export default function AgencyShow({
             <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-5xl">
                 <div className="flex items-center gap-3">
                     <Link
-                        href="/admin/agencies"
+                        href={`${base}/agencies`}
                         className="grid place-items-center size-9 rounded-md hover:bg-muted text-muted-foreground"
                         aria-label="一覧に戻る"
                     >

@@ -30,6 +30,7 @@ use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormFolderController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PublicFormController;
+use App\Http\Controllers\PublicFriendAddController;
 use App\Http\Controllers\PublicQrController;
 use App\Http\Controllers\PublicShortLinkController;
 use App\Http\Controllers\QrActionController;
@@ -50,7 +51,7 @@ use Inertia\Inertia;
 | 運営側 管理画面（/admin・operators guard）
 |--------------------------------------------------------------------------
 */
-Route::prefix('admin')->group(function () {
+Route::prefix(config('admin.path'))->group(function () {
     Route::middleware('guest:admin')->group(function () {
         Route::get('login', [AdminSessionController::class, 'create'])->name('admin.login');
         Route::post('login', [AdminSessionController::class, 'store'])->name('admin.login.store');
@@ -196,6 +197,7 @@ Route::middleware('auth')->group(function () {
     Route::get('ban-detection', [BanDetectionController::class, 'index'])->name('banDetection.index');
     Route::post('ban-detection/check', [BanDetectionController::class, 'runCheck'])->name('banDetection.check');
     Route::post('ban-detection/switch', [BanDetectionController::class, 'switchActive'])->name('banDetection.switch');
+    Route::post('ban-detection/fallback', [BanDetectionController::class, 'setFallback'])->name('banDetection.fallback');
     Route::resource('scenario-folders', ScenarioFolderController::class)
         ->only(['store', 'update', 'destroy']);
 
@@ -262,3 +264,6 @@ Route::get('/qr/{token}', [PublicQrController::class, 'redirect'])->name('public
 
 // 短縮 URL リダイレクト（認証不要）
 Route::get('/s/{token}', [PublicShortLinkController::class, 'redirect'])->name('shortLink.redirect');
+
+// 友だち追加 追跡リダイレクト（認証不要）。BAN 後はアクティブ/予備チャネルへ自動追従。
+Route::get('/add/{token}', [PublicFriendAddController::class, 'redirect'])->name('publicFriendAdd.redirect');

@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MiniBarChart } from "@/components/dashboard/mini-chart";
 import { PlanBadge, StatusBadge } from "@/components/admin/badges";
 import { AdminLayout } from "@/Layouts/AdminLayout";
+import { useAdminBase } from "@/lib/admin";
 
 type Point = { date: string; value: number };
 
@@ -46,6 +47,7 @@ export default function AdminDashboard({
     newAgencySeries,
     recentAgencies,
 }: PageProps) {
+    const base = useAdminBase();
     return (
         <>
             <Head title="運営ダッシュボード" />
@@ -103,7 +105,7 @@ export default function AdminDashboard({
                     <CardHeader className="flex-row items-center justify-between">
                         <CardTitle>最近の新規代理店</CardTitle>
                         <Link
-                            href="/admin/agencies"
+                            href={`${base}/agencies`}
                             className="text-xs text-primary hover:underline inline-flex items-center gap-1"
                         >
                             すべて見る
@@ -122,7 +124,7 @@ export default function AdminDashboard({
                             recentAgencies.map((a) => (
                                 <Link
                                     key={a.id}
-                                    href={`/admin/agencies/${a.id}`}
+                                    href={`${base}/agencies/${a.id}`}
                                     className="flex items-center gap-3 p-3 rounded-lg border border-border/60 hover:bg-muted/40 transition-colors"
                                 >
                                     <div className="flex-1 min-w-0">

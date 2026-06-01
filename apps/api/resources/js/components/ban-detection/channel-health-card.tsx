@@ -19,11 +19,13 @@ export function ChannelHealthCard({
     channel,
     logs,
     candidates,
+    fallbackOptions,
     onOpenSwitch,
 }: {
     channel: ChannelHealth;
     logs: ChannelHealthLog[];
     candidates: ChannelHealth[];
+    fallbackOptions: ChannelHealth[];
     onOpenSwitch: (from: ChannelHealth) => void;
 }) {
     const [expanded, setExpanded] = useState(false);
@@ -32,6 +34,14 @@ export function ChannelHealthCard({
         router.post(
             "/ban-detection/check",
             { line_channel_id: channel.id },
+            { preserveScroll: true },
+        );
+    };
+
+    const setFallback = (fallbackId: number | null) => {
+        router.post(
+            "/ban-detection/fallback",
+            { channel_id: channel.id, fallback_channel_id: fallbackId },
             { preserveScroll: true },
         );
     };
@@ -126,6 +136,41 @@ export function ChannelHealthCard({
                         >
                             予備チャネルに切替...
                         </Button>
+                    )}
+                </div>
+
+                <div className="rounded-md border border-border bg-muted/20 p-3 space-y-2">
+                    <div className="text-xs font-bold flex items-center gap-1.5">
+                        <FontAwesomeIcon
+                            icon={faShieldHalved}
+                            className="size-3 text-muted-foreground"
+                        />
+                        BAN時の自動切替先（予備チャネル）
+                    </div>
+                    <select
+                        value={channel.fallback_channel_id ?? ""}
+                        onChange={(e) =>
+                            setFallback(
+                                e.target.value ? Number(e.target.value) : null,
+                            )
+                        }
+                        className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                        <option value="">未設定（自動切替しない）</option>
+                        {fallbackOptions.map((c) => (
+                            <option key={c.id} value={c.id}>
+                                {c.name}
+                                {c.basic_id ? ` (${c.basic_id})` : ""}
+                            </option>
+                        ))}
+                    </select>
+                    {channel.friend_add_url && (
+                        <p className="text-[11px] text-muted-foreground break-all">
+                            配布用URL:{" "}
+                            <span className="font-mono">
+                                {channel.friend_add_url}
+                            </span>
+                        </p>
                     )}
                 </div>
 

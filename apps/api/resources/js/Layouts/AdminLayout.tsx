@@ -18,6 +18,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAdminBase } from "@/lib/admin";
 import { cn } from "@/lib/utils";
 
 type Operator = {
@@ -27,20 +28,22 @@ type Operator = {
     role: string;
 };
 
-type NavItem = { label: string; href: string; icon: IconDefinition };
+type NavItem = { label: string; seg: string; icon: IconDefinition };
 
 const NAV: NavItem[] = [
-    { label: "ダッシュボード", href: "/admin", icon: faGaugeHigh },
-    { label: "代理店一覧", href: "/admin/agencies", icon: faBuilding },
+    { label: "ダッシュボード", seg: "", icon: faGaugeHigh },
+    { label: "代理店一覧", seg: "/agencies", icon: faBuilding },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
     const page = usePage<{ auth: { operator: Operator | null } }>();
     const operator = page.props.auth?.operator ?? null;
-    const path = page.url.split("?")[0] ?? "/admin";
+    const base = useAdminBase();
+    const path = page.url.split("?")[0] ?? base;
 
-    const isActive = (href: string) =>
-        href === "/admin" ? path === "/admin" : path.startsWith(href);
+    const hrefOf = (seg: string) => base + seg;
+    const isActive = (seg: string) =>
+        seg === "" ? path === base : path.startsWith(base + seg);
 
     return (
         <div className="dark">
@@ -60,11 +63,11 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                     </div>
                     <nav className="flex-1 p-3 space-y-1">
                         {NAV.map((item) => {
-                            const active = isActive(item.href);
+                            const active = isActive(item.seg);
                             return (
                                 <Link
-                                    key={item.href}
-                                    href={item.href}
+                                    key={item.seg}
+                                    href={hrefOf(item.seg)}
                                     className={cn(
                                         "flex items-center gap-3 px-3 h-10 rounded-lg text-sm transition-colors",
                                         active
@@ -142,7 +145,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                                 <DropdownMenuItem
                                     className="gap-3 py-2.5 text-destructive data-highlighted:text-destructive"
                                     onClick={() =>
-                                        router.post("/admin/logout")
+                                        router.post(`${base}/logout`)
                                     }
                                 >
                                     <FontAwesomeIcon
@@ -159,11 +162,11 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                     <div className="lg:hidden flex items-center gap-1 px-3 py-2 border-b border-border overflow-x-auto">
                         {NAV.map((item) => (
                             <Link
-                                key={item.href}
-                                href={item.href}
+                                key={item.seg}
+                                href={hrefOf(item.seg)}
                                 className={cn(
                                     "px-3 h-8 inline-flex items-center gap-1.5 rounded-md text-sm whitespace-nowrap",
-                                    isActive(item.href)
+                                    isActive(item.seg)
                                         ? "bg-sidebar-accent text-primary font-semibold"
                                         : "text-muted-foreground",
                                 )}

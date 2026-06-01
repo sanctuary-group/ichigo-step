@@ -17,6 +17,7 @@ export type LineChannel = {
     basic_id: string | null;
     channel_id: string;
     is_active: boolean;
+    friend_add_url?: string | null;
 };
 
 export type Broadcast = {

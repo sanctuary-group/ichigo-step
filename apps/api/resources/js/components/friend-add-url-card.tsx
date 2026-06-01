@@ -13,13 +13,17 @@ import type { LineChannel } from "@/types/broadcast";
 export function FriendAddUrlCard({ channel }: { channel: LineChannel | null }) {
     const [copied, setCopied] = useState(false);
 
-    const basicId = channel?.basic_id ?? "";
-    const url = basicId
-        ? `https://line.me/R/ti/p/${encodeURIComponent(basicId)}`
-        : "（@basic_id が未設定です）";
+    // 追跡リダイレクト URL（/add/{token}）。BAN 後はアクティブ/予備チャネルへ自動追従する。
+    // 未設定時は basic_id からの直リンクにフォールバック。
+    const trackedUrl =
+        channel?.friend_add_url ??
+        (channel?.basic_id
+            ? `https://line.me/R/ti/p/${encodeURIComponent(channel.basic_id)}`
+            : null);
+    const url = trackedUrl ?? "（@basic_id が未設定です）";
 
     const onCopy = async () => {
-        if (!basicId) return;
+        if (!trackedUrl) return;
         try {
             await navigator.clipboard.writeText(url);
             setCopied(true);
@@ -44,7 +48,7 @@ export function FriendAddUrlCard({ channel }: { channel: LineChannel | null }) {
                             <button
                                 type="button"
                                 onClick={onCopy}
-                                disabled={!basicId}
+                                disabled={!trackedUrl}
                                 className="absolute right-2 top-1/2 -translate-y-1/2 grid place-items-center size-7 rounded hover:bg-muted text-muted-foreground disabled:opacity-40"
                                 aria-label="URLをコピー"
                             >
@@ -64,7 +68,7 @@ export function FriendAddUrlCard({ channel }: { channel: LineChannel | null }) {
                                 icon={faCircleQuestion}
                                 className="size-3.5"
                             />
-                            このURLを友だちに送ると公式アカウントに追加されます
+                            このURLを友だちに送ると公式アカウントに追加されます（BAN時は予備アカウントへ自動誘導）
                         </span>
                     </div>
                     <div className="flex items-center gap-3">

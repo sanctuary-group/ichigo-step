@@ -16,6 +16,7 @@ import { ChannelHealthCard } from "@/components/ban-detection/channel-health-car
 import { RiskBadge } from "@/components/ban-detection/risk-badge";
 import { DashboardLayout } from "@/Layouts/DashboardLayout";
 import type {
+    AutoSwitchConfig,
     ChannelHealth,
     ChannelHealthLog,
 } from "@/types/ban-detection";
@@ -23,11 +24,13 @@ import type {
 type PageProps = {
     channelHealth: ChannelHealth[];
     logsByChannel: Record<string, ChannelHealthLog[]>;
+    autoSwitch: AutoSwitchConfig;
 };
 
 export default function BanDetectionIndex({
     channelHealth,
     logsByChannel,
+    autoSwitch,
 }: PageProps) {
     const [switchDialog, setSwitchDialog] = useState<ChannelHealth | null>(
         null,
@@ -53,7 +56,7 @@ export default function BanDetectionIndex({
                         <p className="text-sm text-muted-foreground mt-1">
                             各 LINE
                             チャネルの健全性を毎分監視し、BAN
-                            検知時には予備チャネルへ手動で切り替えできます。
+                            検知時にはあらかじめ設定した予備チャネルへ自動で切り替えます。
                         </p>
                     </div>
                     <Button
@@ -86,6 +89,32 @@ export default function BanDetectionIndex({
                     </span>
                 </div>
 
+                <div
+                    className={
+                        autoSwitch.enabled
+                            ? "rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm dark:border-emerald-900 dark:bg-emerald-950/40"
+                            : "rounded-md border border-border bg-muted/40 px-4 py-3 text-sm"
+                    }
+                >
+                    {autoSwitch.enabled ? (
+                        <span className="text-emerald-800 dark:text-emerald-200">
+                            <span className="font-bold">自動切替: 有効</span>{" "}
+                            — danger を{" "}
+                            <span className="font-bold tabular-nums">
+                                {autoSwitch.danger_streak}
+                            </span>{" "}
+                            回連続で検知すると、各チャネルに設定した予備チャネルへ自動で切り替えます。配布済みの友だち追加URL / QR
+                            は予備アカウントへ自動で誘導されます。
+                        </span>
+                    ) : (
+                        <span className="text-muted-foreground">
+                            <span className="font-bold">自動切替: 無効</span>{" "}
+                            — danger
+                            検知時は通知のみ。下の「予備チャネルに切替」ボタンから手動で切り替えてください。
+                        </span>
+                    )}
+                </div>
+
                 <hr className="border-border" />
 
                 {channelHealth.length === 0 ? (
@@ -103,12 +132,16 @@ export default function BanDetectionIndex({
                             );
                             const logs = (logsByChannel[String(c.id)] ??
                                 []) as ChannelHealthLog[];
+                            const fallbackOptions = channelHealth.filter(
+                                (other) => other.id !== c.id,
+                            );
                             return (
                                 <ChannelHealthCard
                                     key={c.id}
                                     channel={c}
                                     logs={logs}
                                     candidates={candidates}
+                                    fallbackOptions={fallbackOptions}
                                     onOpenSwitch={(from) =>
                                         setSwitchDialog(from)
                                     }

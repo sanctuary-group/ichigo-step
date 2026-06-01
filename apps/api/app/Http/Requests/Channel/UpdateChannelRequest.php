@@ -21,6 +21,7 @@ class UpdateChannelRequest extends FormRequest
             'channel_access_token' => ['nullable', 'string', 'max:500'],
             'liff_id' => ['nullable', 'string', 'max:100'],
             'is_active' => ['sometimes', 'boolean'],
+            'fallback_channel_id' => ['nullable', 'integer', 'exists:line_channels,id'],
         ];
     }
 }

@@ -9,6 +9,13 @@ export type ChannelHealth = {
     risk_level: RiskLevel;
     last_health_checked_at: string | null;
     last_health_error: string | null;
+    fallback_channel_id: number | null;
+    friend_add_url: string | null;
+};
+
+export type AutoSwitchConfig = {
+    enabled: boolean;
+    danger_streak: number;
 };
 
 export type ChannelHealthLog = {

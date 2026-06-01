@@ -41,6 +41,10 @@ class HandleInertiaRequests extends Middleware
                 'user' => fn () => $request->user()?->only(['id', 'name', 'email']),
                 'operator' => fn () => $request->user('admin')?->only(['id', 'name', 'email', 'role']),
             ],
+            // 管理画面パス配下のときだけ秘密ベースパスを提供（利用者ページには出さない）
+            'adminBase' => fn () => $request->is(config('admin.path'), config('admin.path').'/*')
+                ? '/'.config('admin.path')
+                : null,
             'channels' => fn () => $request->user()
                 ? \App\Models\LineChannel::where('is_active', true)
                     ->get(['id', 'name', 'basic_id', 'channel_id', 'is_active'])

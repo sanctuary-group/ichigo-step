@@ -25,4 +25,15 @@ return [
     | 未設定ならログ出力のみ。
     */
     'ban_alert_webhook_url' => env('BAN_ALERT_WEBHOOK_URL'),
+
+    /*
+    | BAN（danger）検知時に、あらかじめ設定した予備チャネル（fallback_channel_id）へ
+    | アクティブを自動で切り替えるか。false なら手動承認（/ban-detection の切替ボタン）のみ。
+    */
+    'auto_switch_enabled' => (bool) env('LINE_AUTO_SWITCH_ENABLED', true),
+
+    /*
+    | 誤検知でのバタつき防止。直近この回数連続で danger のときだけ自動切替を実行する。
+    */
+    'auto_switch_danger_streak' => (int) env('LINE_AUTO_SWITCH_DANGER_STREAK', 2),
 ];

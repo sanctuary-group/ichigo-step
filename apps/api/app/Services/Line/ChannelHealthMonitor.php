@@ -84,9 +84,67 @@ class ChannelHealthMonitor
 
         if ($riskLevel === 'danger') {
             $this->notifyDanger($channel, $log);
+            $this->maybeAutoSwitch($channel);
         }
 
         return $log;
+    }
+
+    /**
+     * danger（BAN 疑い）が一定回数連続したら、あらかじめ設定した予備チャネルへ
+     * アクティブを自動で切り替える。配布済みの追跡 URL / QR の飛び先が予備へ自動追従する。
+     */
+    private function maybeAutoSwitch(LineChannel $channel): void
+    {
+        if (! config('line.auto_switch_enabled', true)) {
+            return;
+        }
+
+        // すでに停止済み（切替え後）or 予備未設定なら何もしない
+        if (! $channel->is_active || ! $channel->fallback_channel_id) {
+            return;
+        }
+
+        // 誤検知でのバタつき防止: 直近 N 件がすべて danger のときだけ切り替える
+        $streak = max(1, (int) config('line.auto_switch_danger_streak', 2));
+        $recent = ChannelHealthLog::withoutGlobalScopes()
+            ->where('line_channel_id', $channel->id)
+            ->orderByDesc('checked_at')
+            ->orderByDesc('id')
+            ->limit($streak)
+            ->pluck('risk_level');
+
+        if ($recent->count() < $streak || $recent->contains(fn ($r) => $r !== 'danger')) {
+            return;
+        }
+
+        $fallback = LineChannel::withoutGlobalScopes()->find($channel->fallback_channel_id);
+        if (! $fallback) {
+            return;
+        }
+
+        $channel->forceFill(['is_active' => false])->save();
+        $fallback->forceFill(['is_active' => true])->save();
+
+        Log::error('🔁 BAN自動切替', [
+            'from_channel_id' => $channel->id,
+            'from_name' => $channel->name,
+            'to_channel_id' => $fallback->id,
+            'to_name' => $fallback->name,
+        ]);
+
+        $webhook = config('line.ban_alert_webhook_url');
+        if ($webhook) {
+            try {
+                Http::timeout(5)->post($webhook, [
+                    'text' => "🔁 LINEチャネル「{$channel->name}」で BAN を検知したため、"
+                        ."予備チャネル「{$fallback->name}」へ自動切替しました。"
+                        .'新規の友だち追加は予備チャネルへ誘導されます。',
+                ]);
+            } catch (Throwable $e) {
+                Log::warning('Auto-switch webhook failed', ['error' => $e->getMessage()]);
+            }
+        }
     }
 
     /**

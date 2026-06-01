@@ -42,7 +42,7 @@ class AdminSessionController extends Controller
         $operator->forceFill(['last_login_at' => now()])->save();
         $request->session()->regenerate();
 
-        return redirect()->intended('/admin');
+        return redirect()->intended(route('admin.dashboard'));
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -51,6 +51,6 @@ class AdminSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/admin/login');
+        return redirect()->route('admin.login');
     }
 }
