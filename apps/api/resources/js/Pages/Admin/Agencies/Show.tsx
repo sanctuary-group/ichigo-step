@@ -161,6 +161,18 @@ export default function AgencyShow({
                     />
                 </div>
 
+                <div>
+                    <Link href={`${base}/agencies/${agency.id}/friends`}>
+                        <Button variant="outline">
+                            <FontAwesomeIcon
+                                icon={faUserGroup}
+                                className="size-3.5"
+                            />
+                            友だち一覧を見る
+                        </Button>
+                    </Link>
+                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                     <Card>
                         <CardHeader>

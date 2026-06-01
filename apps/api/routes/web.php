@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminSessionController;
 use App\Http\Controllers\Admin\AgencyController;
+use App\Http\Controllers\Admin\AgencyFriendController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
@@ -63,6 +64,8 @@ Route::prefix(config('admin.path'))->group(function () {
         Route::post('logout', [AdminSessionController::class, 'destroy'])->name('admin.logout');
 
         Route::get('agencies', [AgencyController::class, 'index'])->name('admin.agencies.index');
+        Route::get('agencies/{organization}/friends', [AgencyFriendController::class, 'index'])->name('admin.agencies.friends.index');
+        Route::get('agencies/{organization}/friends/{friend}', [AgencyFriendController::class, 'show'])->name('admin.agencies.friends.show');
         Route::get('agencies/{organization}', [AgencyController::class, 'show'])->name('admin.agencies.show');
         Route::patch('agencies/{organization}/status', [AgencyController::class, 'updateStatus'])->name('admin.agencies.status');
         Route::patch('agencies/{organization}/plan', [AgencyController::class, 'updatePlan'])->name('admin.agencies.plan');
