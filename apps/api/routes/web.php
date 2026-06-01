@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminSessionController;
 use App\Http\Controllers\Admin\AgencyController;
 use App\Http\Controllers\Admin\AgencyFriendController;
 use App\Http\Controllers\Admin\AnnouncementController;
+use App\Http\Controllers\Admin\ChannelAnalyticsController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\AutoReplyController;
@@ -69,6 +70,8 @@ Route::prefix(config('admin.path'))->group(function () {
         Route::get('agencies/{organization}', [AgencyController::class, 'show'])->name('admin.agencies.show');
         Route::patch('agencies/{organization}/status', [AgencyController::class, 'updateStatus'])->name('admin.agencies.status');
         Route::patch('agencies/{organization}/plan', [AgencyController::class, 'updatePlan'])->name('admin.agencies.plan');
+
+        Route::get('channels/analytics', [ChannelAnalyticsController::class, 'index'])->name('admin.channels.analytics');
 
         Route::get('announcements', [AnnouncementController::class, 'index'])->name('admin.announcements.index');
         Route::get('announcements/create', [AnnouncementController::class, 'create'])->name('admin.announcements.create');

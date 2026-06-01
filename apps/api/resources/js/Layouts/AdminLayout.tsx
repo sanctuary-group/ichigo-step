@@ -4,6 +4,7 @@ import {
     faGaugeHigh,
     faBuilding,
     faBullhorn,
+    faChartLine,
     faShieldHalved,
     faRightFromBracket,
     faCircleUser,
@@ -34,6 +35,7 @@ type NavItem = { label: string; seg: string; icon: IconDefinition };
 const NAV: NavItem[] = [
     { label: "ダッシュボード", seg: "", icon: faGaugeHigh },
     { label: "代理店一覧", seg: "/agencies", icon: faBuilding },
+    { label: "チャネル分析", seg: "/channels/analytics", icon: faChartLine },
     { label: "お知らせ", seg: "/announcements", icon: faBullhorn },
 ];
 
