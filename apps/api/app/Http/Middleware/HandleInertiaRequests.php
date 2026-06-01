@@ -51,6 +51,10 @@ class HandleInertiaRequests extends Middleware
             'chatStatuses' => fn () => $request->user()
                 ? \App\Models\ChatStatus::orderBy('sort_order')->get(['id', 'organization_id', 'name', 'color', 'sort_order'])->values()
                 : [],
+            'chatSettings' => fn () => $request->user()
+                ? (\App\Models\ChatSetting::first()?->toPayload()
+                    ?? \App\Models\ChatSetting::defaultPayload())
+                : \App\Models\ChatSetting::defaultPayload(),
             'flash' => [
                 'success' => fn () => $request->session()->get('flash.success'),
                 'error' => fn () => $request->session()->get('flash.error'),

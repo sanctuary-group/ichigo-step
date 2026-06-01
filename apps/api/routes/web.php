@@ -10,6 +10,7 @@ use App\Http\Controllers\ScenarioController;
 use App\Http\Controllers\ScenarioFolderController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ChatManagementController;
+use App\Http\Controllers\ChatSettingController;
 use App\Http\Controllers\ChatStatusController;
 use App\Http\Controllers\CsvController;
 use App\Http\Controllers\DashboardController;
@@ -27,12 +28,14 @@ use App\Http\Controllers\FormFolderController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PublicFormController;
 use App\Http\Controllers\PublicQrController;
+use App\Http\Controllers\PublicShortLinkController;
 use App\Http\Controllers\QrActionController;
 use App\Http\Controllers\QrActionFolderController;
 use App\Http\Controllers\RichMenuController;
 use App\Http\Controllers\RichMenuFolderController;
 use App\Http\Controllers\Settings\ChannelController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\ShortLinkController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\TemplateFolderController;
@@ -64,7 +67,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('settings/profile/password', [ProfileController::class, 'updatePassword'])->name('settings.profile.password');
 
     Route::get('/chat', [ChatController::class, 'index'])->name('chat');
-    Route::get('/chat/settings', fn () => Inertia::render('Chat/Settings'))->name('chat.settings');
+    Route::get('/chat/settings', [ChatSettingController::class, 'edit'])->name('chat.settings');
+    Route::patch('/chat/settings', [ChatSettingController::class, 'update'])->name('chat.settings.update');
+
+    Route::get('/short-links', [ShortLinkController::class, 'index'])->name('shortLinks.index');
+    Route::delete('/short-links/{shortLink}', [ShortLinkController::class, 'destroy'])->name('shortLinks.destroy');
     Route::get('/chat/management', [ChatManagementController::class, 'index'])
         ->name('chat.management');
     Route::post('/chat/management/bulk-read', [ChatManagementController::class, 'bulkUpdateRead'])
@@ -227,3 +234,6 @@ Route::post('/f/{token}', [PublicFormController::class, 'submit'])->name('public
 // QR コードアクション 追跡 URL / QR 画像（認証不要）
 Route::get('/qr/{token}/image', [PublicQrController::class, 'image'])->name('publicQr.image');
 Route::get('/qr/{token}', [PublicQrController::class, 'redirect'])->name('publicQr.redirect');
+
+// 短縮 URL リダイレクト（認証不要）
+Route::get('/s/{token}', [PublicShortLinkController::class, 'redirect'])->name('shortLink.redirect');

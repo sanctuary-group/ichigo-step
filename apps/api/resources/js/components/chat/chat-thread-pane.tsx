@@ -34,6 +34,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ChatBubble } from "@/components/chat/chat-bubble";
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import { EmptyState } from "@/components/empty-state";
 import { FriendAvatar } from "@/components/friend-avatar";
 import { friendDisplayName } from "@/lib/friend";
@@ -324,6 +331,12 @@ function ChatHeader({
 }
 
 function Composer({ friend }: { friend: Friend }) {
+    const { props } = usePage<{
+        chatSettings?: { send_shortcut?: string; send_preview?: boolean };
+    }>();
+    const sendShortcut = props.chatSettings?.send_shortcut ?? "shift_enter_send";
+    const sendPreview = props.chatSettings?.send_preview ?? true;
+    const [previewOpen, setPreviewOpen] = useState(false);
     const form = useForm<{ content: string; image: File | null }>({
         content: "",
         image: null,
@@ -368,13 +381,8 @@ function Composer({ friend }: { friend: Friend }) {
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    const onSubmit = (e: FormEvent) => {
-        e.preventDefault();
-        const hasImage = !!form.data.image;
-        const hasText = form.data.content.trim().length > 0;
-        if (!hasImage && !hasText) return;
+    const doSend = () => {
         if (form.processing) return;
-
         form.post(`/chat/${friend.id}/messages`, {
             preserveScroll: true,
             preserveState: true,
@@ -382,9 +390,24 @@ function Composer({ friend }: { friend: Friend }) {
             onSuccess: () => {
                 form.reset();
                 clearImage();
+                setPreviewOpen(false);
                 inputRef.current?.focus();
             },
         });
+    };
+
+    const onSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        const hasImage = !!form.data.image;
+        const hasText = form.data.content.trim().length > 0;
+        if (!hasImage && !hasText) return;
+        if (form.processing) return;
+
+        if (sendPreview) {
+            setPreviewOpen(true);
+            return;
+        }
+        doSend();
     };
 
     const insertEmoji = (emoji: string) => {
@@ -394,14 +417,7 @@ function Composer({ friend }: { friend: Friend }) {
 
     const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key !== "Enter") return;
-        let mode = "shift_enter_send";
-        try {
-            const raw = localStorage.getItem("chatSettings.sendShortcut");
-            if (raw) mode = JSON.parse(raw);
-        } catch {
-            // ignore
-        }
-        if (mode === "shift_enter_send") {
+        if (sendShortcut === "shift_enter_send") {
             if (e.shiftKey) {
                 e.preventDefault();
                 onSubmit(e as unknown as FormEvent);
@@ -553,6 +569,55 @@ function Composer({ friend }: { friend: Friend }) {
             {emojiOpen && (
                 <EmojiPopover onSelect={insertEmoji} />
             )}
+
+            <Dialog
+                open={previewOpen}
+                onOpenChange={(o) => !o && setPreviewOpen(false)}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>送信プレビュー</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                        <div className="flex justify-end">
+                            <div className="max-w-[80%] space-y-2">
+                                {imagePreview && (
+                                    <img
+                                        src={imagePreview}
+                                        alt="送信画像プレビュー"
+                                        className="rounded-lg max-h-60 ml-auto"
+                                    />
+                                )}
+                                {form.data.content.trim().length > 0 && (
+                                    <div className="rounded-2xl rounded-tr-sm bg-primary text-primary-foreground px-3 py-2 text-sm whitespace-pre-wrap break-words">
+                                        {form.data.content}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                            この内容で送信します。送信後の取り消しはできません。
+                        </p>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setPreviewOpen(false)}
+                            disabled={form.processing}
+                        >
+                            キャンセル
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={doSend}
+                            disabled={form.processing}
+                        >
+                            {form.processing ? "送信中..." : "送信"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

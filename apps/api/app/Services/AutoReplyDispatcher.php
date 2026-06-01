@@ -16,8 +16,9 @@ class AutoReplyDispatcher
 {
     /**
      * 受信メッセージに対する自動応答（trigger_type = all / keyword）。
+     * 反応したルールを返す（自動確認済み判定で利用）。反応なしは null。
      */
-    public static function handleMessage(Friend $friend, LineChannel $channel, string $text, ?string $replyToken): void
+    public static function handleMessage(Friend $friend, LineChannel $channel, string $text, ?string $replyToken): ?AutoReply
     {
         $rule = self::activeRules($channel, ['all', 'keyword'])
             ->first(fn (AutoReply $r) => $r->isWithinSchedule(now()) && $r->matchesText($text));
@@ -25,6 +26,8 @@ class AutoReplyDispatcher
         if ($rule) {
             self::fire($rule, $friend, $channel, $replyToken);
         }
+
+        return $rule;
     }
 
     /**

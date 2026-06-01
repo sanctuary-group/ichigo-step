@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Message\StoreMessageRequest;
+use App\Models\ChatSetting;
 use App\Models\Friend;
 use App\Models\Message;
 use App\Services\Line\LineClient;
@@ -31,6 +32,12 @@ class MessageController extends Controller
     private function sendText(StoreMessageRequest $request, Friend $friend): RedirectResponse
     {
         $text = $request->string('content')->toString();
+
+        // 短縮URLの利用が ON なら本文中の URL を短縮リンクに置換
+        if ($this->shortUrlEnabled()) {
+            $text = app(\App\Services\UrlShortener::class)->shorten($text, $friend);
+        }
+
         $channel = $friend->lineChannel;
         $client = LineClient::forChannel($channel);
         $message = ['type' => 'text', 'text' => $text];
@@ -61,6 +68,9 @@ class MessageController extends Controller
             if ($delivery === 'reply') {
                 $update['pending_reply_token'] = null;
                 $update['pending_reply_received_at'] = null;
+            }
+            if ($this->onReplyAutoRead()) {
+                $update['unread_count'] = 0;
             }
             $friend->forceFill($update)->save();
         });
@@ -112,13 +122,31 @@ class MessageController extends Controller
                 'sent_at' => now(),
             ]);
 
-            $friend->forceFill([
+            $imgUpdate = [
                 'last_message_preview' => '[画像]',
                 'last_message_at' => now(),
-            ])->save();
+            ];
+            if ($this->onReplyAutoRead()) {
+                $imgUpdate['unread_count'] = 0;
+            }
+            $friend->forceFill($imgUpdate)->save();
         });
 
         return back(303);
+    }
+
+    /** 返信時の自動確認済み変更が有効か。 */
+    private function onReplyAutoRead(): bool
+    {
+        $autoRead = ChatSetting::first()?->auto_read ?? [];
+
+        return (bool) ($autoRead['onReply'] ?? false);
+    }
+
+    /** 短縮URLの利用が有効か。 */
+    private function shortUrlEnabled(): bool
+    {
+        return (bool) (ChatSetting::first()?->short_url ?? false);
     }
 
     /**

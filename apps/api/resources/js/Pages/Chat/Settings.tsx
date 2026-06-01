@@ -1,4 +1,4 @@
-import { Head, router, useForm, usePage } from "@inertiajs/react";
+import { Head, Link, router, useForm, usePage } from "@inertiajs/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faPlus,
@@ -25,7 +25,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { DashboardLayout } from "@/Layouts/DashboardLayout";
 import { cn } from "@/lib/utils";
-import type { ChatStatus } from "@/types/chat";
+import type { ChatAutoRead, ChatSettings, ChatStatus } from "@/types/chat";
 
 type CategoryId =
     | "statuses"
@@ -333,15 +333,26 @@ function StatusDialog({
 }
 
 function AutoReadPanel() {
-    const [pref, setPref] = useLocalStoragePref("chatSettings.autoRead", {
-        bracket: false,
-        sticker: false,
-        reactAll: false,
-        reactKeyword: false,
-        onReply: false,
-        onBlock: false,
-    });
+    const { props } = usePage<{ chatSettings: ChatSettings }>();
+    const [pref, setPref] = useState<ChatAutoRead>(props.chatSettings.auto_read);
     const [saved, setSaved] = useState(false);
+    const [saving, setSaving] = useState(false);
+
+    const save = () => {
+        setSaving(true);
+        router.patch(
+            "/chat/settings",
+            { auto_read: pref },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setSaved(true);
+                    setTimeout(() => setSaved(false), 2000);
+                },
+                onFinish: () => setSaving(false),
+            },
+        );
+    };
 
     const types = [
         { id: "bracket" as const, label: "【〇〇】メッセージ" },
@@ -397,23 +408,34 @@ function AutoReadPanel() {
                 onCheckedChange={(v) => setPref({ ...pref, onBlock: v })}
             />
 
-            <SaveButton
-                onSave={() => {
-                    setSaved(true);
-                    setTimeout(() => setSaved(false), 2000);
-                }}
-                saved={saved}
-            />
+            <SaveButton onSave={save} saved={saved} processing={saving} />
         </div>
     );
 }
 
 function ShortcutsPanel() {
-    const [mode, setMode] = useLocalStoragePref<"shift_enter_send" | "enter_send">(
-        "chatSettings.sendShortcut",
-        "shift_enter_send",
+    const { props } = usePage<{ chatSettings: ChatSettings }>();
+    const [mode, setMode] = useState<"shift_enter_send" | "enter_send">(
+        props.chatSettings.send_shortcut,
     );
     const [saved, setSaved] = useState(false);
+    const [saving, setSaving] = useState(false);
+
+    const save = () => {
+        setSaving(true);
+        router.patch(
+            "/chat/settings",
+            { send_shortcut: mode },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setSaved(true);
+                    setTimeout(() => setSaved(false), 2000);
+                },
+                onFinish: () => setSaving(false),
+            },
+        );
+    };
 
     return (
         <div className="space-y-6 max-w-3xl">
@@ -453,23 +475,32 @@ function ShortcutsPanel() {
                 </Label>
             </RadioGroup>
 
-            <SaveButton
-                onSave={() => {
-                    setSaved(true);
-                    setTimeout(() => setSaved(false), 2000);
-                }}
-                saved={saved}
-            />
+            <SaveButton onSave={save} saved={saved} processing={saving} />
         </div>
     );
 }
 
 function ShortUrlPanel() {
-    const [enabled, setEnabled] = useLocalStoragePref(
-        "chatSettings.shortUrl",
-        false,
-    );
+    const { props } = usePage<{ chatSettings: ChatSettings }>();
+    const [enabled, setEnabled] = useState(props.chatSettings.short_url);
     const [saved, setSaved] = useState(false);
+    const [saving, setSaving] = useState(false);
+
+    const save = () => {
+        setSaving(true);
+        router.patch(
+            "/chat/settings",
+            { short_url: enabled },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setSaved(true);
+                    setTimeout(() => setSaved(false), 2000);
+                },
+                onFinish: () => setSaving(false),
+            },
+        );
+    };
 
     return (
         <div className="space-y-6 max-w-3xl">
@@ -485,23 +516,38 @@ function ShortUrlPanel() {
                 offLabel="利用しない"
                 onLabel="利用する"
             />
-            <SaveButton
-                onSave={() => {
-                    setSaved(true);
-                    setTimeout(() => setSaved(false), 2000);
-                }}
-                saved={saved}
-            />
+            <Link
+                href="/short-links"
+                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+            >
+                URL分析を見る →
+            </Link>
+            <SaveButton onSave={save} saved={saved} processing={saving} />
         </div>
     );
 }
 
 function PreviewPanel() {
-    const [enabled, setEnabled] = useLocalStoragePref(
-        "chatSettings.sendPreview",
-        true,
-    );
+    const { props } = usePage<{ chatSettings: ChatSettings }>();
+    const [enabled, setEnabled] = useState(props.chatSettings.send_preview);
     const [saved, setSaved] = useState(false);
+    const [saving, setSaving] = useState(false);
+
+    const save = () => {
+        setSaving(true);
+        router.patch(
+            "/chat/settings",
+            { send_preview: enabled },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setSaved(true);
+                    setTimeout(() => setSaved(false), 2000);
+                },
+                onFinish: () => setSaving(false),
+            },
+        );
+    };
 
     return (
         <div className="space-y-6 max-w-3xl">
@@ -529,13 +575,7 @@ function PreviewPanel() {
                     時間以内のメッセージのみ、LINE 公式アカウント管理画面のチャットから送信取り消しが可能です。
                 </p>
             </div>
-            <SaveButton
-                onSave={() => {
-                    setSaved(true);
-                    setTimeout(() => setSaved(false), 2000);
-                }}
-                saved={saved}
-            />
+            <SaveButton onSave={save} saved={saved} processing={saving} />
         </div>
     );
 }
@@ -656,50 +696,27 @@ function LabeledSwitch({
 function SaveButton({
     onSave,
     saved,
+    processing,
 }: {
     onSave: () => void;
     saved: boolean;
+    processing?: boolean;
 }) {
     return (
         <div className="pt-2 flex items-center gap-3">
             <Button
                 variant="outline"
                 onClick={onSave}
-                className="border-primary text-primary hover:bg-primary/10 hover:text-primary px-10"
+                disabled={processing}
+                className="border-primary text-primary hover:bg-primary/10 hover:text-primary px-10 disabled:opacity-50"
             >
-                保存
+                {processing ? "保存中..." : "保存"}
             </Button>
             {saved && (
                 <span className="text-xs text-primary">保存しました</span>
             )}
         </div>
     );
-}
-
-function useLocalStoragePref<T>(
-    key: string,
-    initial: T,
-): [T, (v: T) => void] {
-    const [value, setValue] = useState<T>(() => {
-        if (typeof window === "undefined") return initial;
-        try {
-            const raw = window.localStorage.getItem(key);
-            return raw ? (JSON.parse(raw) as T) : initial;
-        } catch {
-            return initial;
-        }
-    });
-
-    const update = (v: T) => {
-        setValue(v);
-        try {
-            window.localStorage.setItem(key, JSON.stringify(v));
-        } catch {
-            // ignore
-        }
-    };
-
-    return [value, update];
 }
 
 function hexToRgba(hex: string, alpha: number): string {

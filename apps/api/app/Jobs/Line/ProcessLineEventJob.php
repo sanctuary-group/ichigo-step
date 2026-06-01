@@ -2,6 +2,7 @@
 
 namespace App\Jobs\Line;
 
+use App\Models\ChatSetting;
 use App\Models\Friend;
 use App\Models\LineChannel;
 use App\Models\Message;
@@ -100,13 +101,20 @@ class ProcessLineEventJob implements ShouldQueue
             return;
         }
 
+        $update = [
+            'is_following' => false,
+            'unfollowed_at' => $this->eventTimestamp(),
+        ];
+
+        // ブロックされた友だちの自動確認済み変更
+        if ($this->autoReadSettings($channel)['onBlock']) {
+            $update['unread_count'] = 0;
+        }
+
         Friend::withoutGlobalScopes()
             ->where('line_channel_id', $channel->id)
             ->where('line_user_id', $userId)
-            ->update([
-                'is_following' => false,
-                'unfollowed_at' => $this->eventTimestamp(),
-            ]);
+            ->update($update);
     }
 
     private function handleMessage(LineChannel $channel): void
@@ -137,24 +145,52 @@ class ProcessLineEventJob implements ShouldQueue
         );
 
         if ($created->wasRecentlyCreated) {
+            $autoRead = $this->autoReadSettings($channel);
+
+            // 【〇〇】メッセージ / スタンプ の自動確認済み変更
+            $markRead = ($autoRead['bracket'] && preg_match('/^\s*【.*?】/u', (string) $content) === 1)
+                || ($autoRead['sticker'] && $messageType === 'sticker');
+
             $friend->forceFill([
                 'last_message_preview' => $this->previewFor($messageType, $content),
                 'last_message_at' => $timestamp,
-                'unread_count' => $friend->unread_count + 1,
+                'unread_count' => $markRead ? 0 : $friend->unread_count + 1,
                 'pending_reply_token' => $this->event['replyToken'] ?? null,
                 'pending_reply_received_at' => isset($this->event['replyToken']) ? $timestamp : null,
             ])->save();
 
             // テキスト受信時のみ自動応答を評価（Webhook 再送での二重応答を避けるため新規作成時のみ）
             if ($messageType === 'text') {
-                AutoReplyDispatcher::handleMessage(
+                $matched = AutoReplyDispatcher::handleMessage(
                     $friend,
                     $channel,
                     (string) $content,
                     $this->event['replyToken'] ?? null,
                 );
+
+                // 自動応答に反応したメッセージの自動確認済み変更
+                if ($matched && ! $markRead) {
+                    $reactRead = ($matched->trigger_type === 'all' && $autoRead['reactAll'])
+                        || ($matched->trigger_type === 'keyword' && $autoRead['reactKeyword']);
+                    if ($reactRead) {
+                        $friend->forceFill(['unread_count' => 0])->save();
+                    }
+                }
             }
         }
+    }
+
+    /** 対象組織の自動確認済み変更フラグ群を返す。 */
+    private function autoReadSettings(LineChannel $channel): array
+    {
+        $setting = ChatSetting::withoutGlobalScopes()
+            ->where('organization_id', $channel->organization_id)
+            ->first();
+
+        return array_merge(
+            ChatSetting::AUTO_READ_DEFAULTS,
+            $setting?->auto_read ?? [],
+        );
     }
 
     private function handlePostback(LineChannel $channel): void

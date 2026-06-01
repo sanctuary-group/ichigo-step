@@ -47,6 +47,22 @@ export type FriendFieldValueLite = {
     value: string | null;
 };
 
+export type ChatAutoRead = {
+    bracket: boolean;
+    sticker: boolean;
+    reactAll: boolean;
+    reactKeyword: boolean;
+    onReply: boolean;
+    onBlock: boolean;
+};
+
+export type ChatSettings = {
+    send_shortcut: "shift_enter_send" | "enter_send";
+    short_url: boolean;
+    send_preview: boolean;
+    auto_read: ChatAutoRead;
+};
+
 export type MessageType =
     | "text"
     | "image"
