@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faGaugeHigh,
     faBuilding,
+    faBullhorn,
     faShieldHalved,
     faRightFromBracket,
     faCircleUser,
@@ -33,6 +34,7 @@ type NavItem = { label: string; seg: string; icon: IconDefinition };
 const NAV: NavItem[] = [
     { label: "ダッシュボード", seg: "", icon: faGaugeHigh },
     { label: "代理店一覧", seg: "/agencies", icon: faBuilding },
+    { label: "お知らせ", seg: "/announcements", icon: faBullhorn },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {

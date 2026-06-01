@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Announcement;
 use App\Models\ChatStatus;
 use App\Models\Friend;
 use Illuminate\Support\Carbon;
@@ -13,9 +14,34 @@ class HomeController extends Controller
     public function show(): Response
     {
         return Inertia::render('Home/Index', [
+            'announcements' => $this->buildAnnouncements(),
             'friendDailyRows' => $this->buildFriendDailyRows(),
             'statusBuckets' => $this->buildStatusBuckets(),
         ]);
+    }
+
+    /**
+     * 運営からの公開済みお知らせ（新しい順・最大10件）
+     */
+    private function buildAnnouncements(): array
+    {
+        $sevenDaysAgo = Carbon::now()->subDays(7);
+
+        return Announcement::published()
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->limit(10)
+            ->get()
+            ->map(fn (Announcement $a) => [
+                'id' => $a->id,
+                'date' => $a->published_at?->format('Y年m月d日') ?? '',
+                'title' => $a->title,
+                'body' => $a->body,
+                'importance' => $a->importance,
+                'isNew' => $a->published_at !== null
+                    && $a->published_at->greaterThanOrEqualTo($sevenDaysAgo),
+            ])
+            ->all();
     }
 
     /**

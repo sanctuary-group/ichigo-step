@@ -6,18 +6,28 @@ import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/Layouts/DashboardLayout";
 
 type Announcement = {
+    id: number;
     date: string;
     title: string;
+    body: string;
+    importance: "normal" | "important" | "maintenance";
     isNew?: boolean;
 };
 
-const ANNOUNCEMENTS: Announcement[] = [
-    { date: "2026年05月28日", title: "ichigo-step β版リリース", isNew: true },
-    { date: "2026年05月20日", title: "メッセージ配信機能を実装" },
-    { date: "2026年05月15日", title: "ステップ配信機能を実装" },
-    { date: "2026年05月10日", title: "あいさつメッセージ機能を実装" },
-    { date: "2026年05月05日", title: "1:1 チャット機能を実装" },
-];
+const IMPORTANCE_LABEL: Record<
+    Announcement["importance"],
+    { label: string; className: string } | null
+> = {
+    normal: null,
+    important: {
+        label: "重要",
+        className: "bg-red-500 text-white",
+    },
+    maintenance: {
+        label: "メンテナンス",
+        className: "bg-amber-500 text-white",
+    },
+};
 
 type FriendDailyRow = {
     date: string;
@@ -36,11 +46,13 @@ type StatusBucket = {
 };
 
 type PageProps = {
+    announcements: Announcement[];
     friendDailyRows: FriendDailyRow[];
     statusBuckets: StatusBucket[];
 };
 
 export default function HomePage({
+    announcements,
     friendDailyRows,
     statusBuckets,
 }: PageProps) {
@@ -59,26 +71,42 @@ export default function HomePage({
                             <div>お知らせ内容</div>
                         </div>
                         <ul className="max-h-56 overflow-y-auto bg-background/40">
-                            {ANNOUNCEMENTS.map((a, i) => (
-                                <li
-                                    key={i}
-                                    className="grid grid-cols-[110px_1fr] sm:grid-cols-[180px_1fr] px-5 py-2.5 text-sm border-t border-border/60 first:border-t-0"
-                                >
-                                    <div className="text-foreground">
-                                        {a.date}
-                                    </div>
-                                    <div className="flex items-center gap-2 min-w-0">
-                                        {a.isNew && (
-                                            <span className="inline-flex items-center bg-amber-400 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
-                                                NEW
-                                            </span>
-                                        )}
-                                        <span className="text-foreground truncate">
-                                            {a.title}
-                                        </span>
-                                    </div>
+                            {announcements.length === 0 ? (
+                                <li className="px-5 py-6 text-sm text-muted-foreground text-center">
+                                    お知らせはありません
                                 </li>
-                            ))}
+                            ) : (
+                                announcements.map((a) => {
+                                    const imp = IMPORTANCE_LABEL[a.importance];
+                                    return (
+                                        <li
+                                            key={a.id}
+                                            className="grid grid-cols-[110px_1fr] sm:grid-cols-[180px_1fr] px-5 py-2.5 text-sm border-t border-border/60 first:border-t-0"
+                                        >
+                                            <div className="text-foreground">
+                                                {a.date}
+                                            </div>
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                {a.isNew && (
+                                                    <span className="inline-flex items-center bg-amber-400 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0">
+                                                        NEW
+                                                    </span>
+                                                )}
+                                                {imp && (
+                                                    <span
+                                                        className={`inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${imp.className}`}
+                                                    >
+                                                        {imp.label}
+                                                    </span>
+                                                )}
+                                                <span className="text-foreground truncate">
+                                                    {a.title}
+                                                </span>
+                                            </div>
+                                        </li>
+                                    );
+                                })
+                            )}
                         </ul>
                     </div>
                 </section>
