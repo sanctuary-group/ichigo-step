@@ -19,6 +19,9 @@ use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormFolderController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PublicFormController;
+use App\Http\Controllers\PublicQrController;
+use App\Http\Controllers\QrActionController;
+use App\Http\Controllers\QrActionFolderController;
 use App\Http\Controllers\RichMenuController;
 use App\Http\Controllers\RichMenuFolderController;
 use App\Http\Controllers\Settings\ChannelController;
@@ -97,6 +100,17 @@ Route::middleware('auth')->group(function () {
     Route::patch('greetings/unblock', fn (\Illuminate\Http\Request $r) => app(GreetingController::class)->update($r, 'unblock'))->name('greetings.unblock.update');
     Route::post('greetings/upload-image', [GreetingController::class, 'uploadImage'])->name('greetings.uploadImage');
 
+    Route::get('qr-actions', [QrActionController::class, 'index'])->name('qrActions.index');
+    Route::get('qr-actions/create', [QrActionController::class, 'create'])->name('qrActions.create');
+    Route::post('qr-actions', [QrActionController::class, 'store'])->name('qrActions.store');
+    Route::get('qr-actions/{qrAction}/edit', [QrActionController::class, 'edit'])->name('qrActions.edit');
+    Route::patch('qr-actions/{qrAction}', [QrActionController::class, 'update'])->name('qrActions.update');
+    Route::delete('qr-actions/{qrAction}', [QrActionController::class, 'destroy'])->name('qrActions.destroy');
+    Route::patch('qr-actions/{qrAction}/toggle-active', [QrActionController::class, 'toggleActive'])->name('qrActions.toggleActive');
+    Route::resource('qr-action-folders', QrActionFolderController::class)
+        ->only(['store', 'update', 'destroy'])
+        ->names('qrActionFolders');
+
     Route::get('auto-replies', [AutoReplyController::class, 'index'])->name('autoReplies.index');
     Route::get('auto-replies/create', [AutoReplyController::class, 'create'])->name('autoReplies.create');
     Route::post('auto-replies', [AutoReplyController::class, 'store'])->name('autoReplies.store');
@@ -162,7 +176,6 @@ Route::middleware('auth')->group(function () {
 
     // サイドバー項目の placeholder（B-3b 以降で順次実装）
     $placeholderRoutes = [
-        '/qr-actions' => 'QR コードアクション',
         '/data-management' => 'データ管理',
         '/data-management/friend-fields' => '友だち情報管理',
         '/data-management/csv' => 'CSV 管理',
@@ -177,3 +190,7 @@ Route::middleware('auth')->group(function () {
 // 公開フォーム回答ページ（認証不要）
 Route::get('/f/{token}', [PublicFormController::class, 'show'])->name('publicForm.show');
 Route::post('/f/{token}', [PublicFormController::class, 'submit'])->name('publicForm.submit');
+
+// QR コードアクション 追跡 URL / QR 画像（認証不要）
+Route::get('/qr/{token}/image', [PublicQrController::class, 'image'])->name('publicQr.image');
+Route::get('/qr/{token}', [PublicQrController::class, 'redirect'])->name('publicQr.redirect');
