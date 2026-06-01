@@ -1,6 +1,6 @@
 import { Link, usePage } from "@inertiajs/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faKey, faUsers, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faKey, faUser } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 import { DashboardLayout } from "@/Layouts/DashboardLayout";
@@ -10,7 +10,6 @@ type Item = { label: string; href: string; icon: IconDefinition };
 
 const ITEMS: Item[] = [
     { label: "LINE チャネル", href: "/settings/channels", icon: faKey },
-    { label: "メンバー", href: "/settings/members", icon: faUsers },
     { label: "プロフィール", href: "/settings/profile", icon: faUser },
 ];
 
@@ -27,7 +26,7 @@ export function SettingsLayout({ children }: { children: React.ReactNode }) {
                             設定
                         </h1>
                         <p className="text-sm text-muted-foreground mt-1">
-                            組織・チャネル・メンバーの管理
+                            LINE チャネル・プロフィールの管理
                         </p>
                     </div>
 

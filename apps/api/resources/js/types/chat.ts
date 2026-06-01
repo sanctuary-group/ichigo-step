@@ -39,6 +39,12 @@ export type Friend = {
     created_at: string;
     updated_at: string;
     tags?: Tag[];
+    field_values?: FriendFieldValueLite[];
+};
+
+export type FriendFieldValueLite = {
+    friend_field_id: number;
+    value: string | null;
 };
 
 export type MessageType =

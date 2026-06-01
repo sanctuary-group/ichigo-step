@@ -14,6 +14,7 @@ import {
     faUserPen,
     faUserPlus,
     faIdCard,
+    faRectangleList,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { FormEvent, useEffect, useState } from "react";
@@ -38,6 +39,7 @@ import { TagBadge } from "@/components/tag-badge";
 import { friendDisplayName, SOURCE_LABELS, sourceLabel } from "@/lib/friend";
 import { formatDateTime } from "@/lib/time";
 import type { Friend, FriendSource, Tag } from "@/types/chat";
+import type { FriendField } from "@/types/data-management";
 
 export function RightInfoPanel({
     friend,
@@ -48,8 +50,9 @@ export function RightInfoPanel({
     mobileVisible?: boolean;
     onBack?: () => void;
 }) {
-    const { props } = usePage<{ tags?: Tag[] }>();
+    const { props } = usePage<{ tags?: Tag[]; friendFields?: FriendField[] }>();
     const allTags = props.tags ?? [];
+    const friendFields = props.friendFields ?? [];
     const attachedTags = friend.tags ?? [];
     const attachedIds = new Set(attachedTags.map((t) => t.id));
     const availableTags = allTags.filter((t) => !attachedIds.has(t.id));
@@ -113,13 +116,19 @@ export function RightInfoPanel({
                 <div className="text-sm font-medium">友だち情報</div>
             </div>
             <Tabs defaultValue="basic" className="flex-1 flex flex-col min-h-0">
-                <TabsList className="mx-3 mt-3 grid grid-cols-4 h-9 bg-muted/60 w-auto">
+                <TabsList className="mx-3 mt-3 grid grid-cols-5 h-9 bg-muted/60 w-auto">
                     <TabsTrigger value="basic" aria-label="基本情報">
                         <FontAwesomeIcon icon={faDatabase} className="size-3.5" />
                     </TabsTrigger>
                     <TabsTrigger value="profile" aria-label="LINE 情報">
                         <FontAwesomeIcon
                             icon={faAddressCard}
+                            className="size-3.5"
+                        />
+                    </TabsTrigger>
+                    <TabsTrigger value="fields" aria-label="友だち情報">
+                        <FontAwesomeIcon
+                            icon={faRectangleList}
                             className="size-3.5"
                         />
                     </TabsTrigger>
@@ -237,6 +246,13 @@ export function RightInfoPanel({
                                 </div>
                             </InfoRow>
                         )}
+                    </TabsContent>
+
+                    <TabsContent value="fields" className="space-y-3">
+                        <CustomFieldsTab
+                            friend={friend}
+                            fields={friendFields}
+                        />
                     </TabsContent>
 
                     <TabsContent value="tags" className="space-y-3">
@@ -372,6 +388,182 @@ function MemoTab({ friend }: { friend: Friend }) {
                 </Button>
             </div>
         </>
+    );
+}
+
+function CustomFieldsTab({
+    friend,
+    fields,
+}: {
+    friend: Friend;
+    fields: FriendField[];
+}) {
+    const initial = () => {
+        const map: Record<number, string> = {};
+        for (const f of fields) {
+            const v = (friend.field_values ?? []).find(
+                (fv) => fv.friend_field_id === f.id,
+            );
+            map[f.id] = v?.value ?? "";
+        }
+        return map;
+    };
+
+    const [values, setValues] = useState<Record<number, string>>(initial);
+    const [saving, setSaving] = useState(false);
+    const [saved, setSaved] = useState(false);
+
+    useEffect(() => {
+        setValues(initial());
+        setSaved(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [friend.id, fields.length]);
+
+    const baseline = initial();
+    const dirty = fields.some((f) => (values[f.id] ?? "") !== baseline[f.id]);
+
+    const setValue = (id: number, v: string) => {
+        setValues((prev) => ({ ...prev, [id]: v }));
+        setSaved(false);
+    };
+
+    const save = () => {
+        setSaving(true);
+        router.put(
+            `/friends/${friend.id}/field-values`,
+            { values },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => {
+                    setSaved(true);
+                    setTimeout(() => setSaved(false), 2000);
+                },
+                onFinish: () => setSaving(false),
+            },
+        );
+    };
+
+    if (fields.length === 0) {
+        return (
+            <>
+                <SectionTitle>友だち情報</SectionTitle>
+                <div className="text-xs text-muted-foreground leading-relaxed">
+                    友だち情報の項目がまだありません。
+                    <a
+                        href="/data-management/friend-fields"
+                        className="text-blue-600 dark:text-blue-400 underline mx-1"
+                    >
+                        友だち情報管理
+                    </a>
+                    で項目を作成してください。
+                </div>
+            </>
+        );
+    }
+
+    // フォルダごとにグルーピング（取得順を維持）
+    const groups: { name: string; items: FriendField[] }[] = [];
+    for (const f of fields) {
+        const name = f.folder?.name ?? "未分類";
+        const last = groups[groups.length - 1];
+        if (last && last.name === name) last.items.push(f);
+        else groups.push({ name, items: [f] });
+    }
+
+    return (
+        <>
+            <SectionTitle>友だち情報</SectionTitle>
+            <div className="space-y-4">
+                {groups.map((g) => (
+                    <div key={g.name} className="space-y-3">
+                        <div className="text-[11px] font-medium text-muted-foreground">
+                            {g.name}
+                        </div>
+                        {g.items.map((f) => (
+                            <div key={f.id} className="space-y-1">
+                                <Label
+                                    htmlFor={`ff-${f.id}`}
+                                    className="text-xs"
+                                >
+                                    {f.name}
+                                </Label>
+                                <FieldValueInput
+                                    field={f}
+                                    value={values[f.id] ?? ""}
+                                    onChange={(v) => setValue(f.id, v)}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                ))}
+            </div>
+            <div className="flex items-center justify-between pt-1">
+                <span className="text-xs text-muted-foreground">
+                    {saved ? "保存しました" : ""}
+                </span>
+                <Button
+                    size="sm"
+                    onClick={save}
+                    disabled={saving || !dirty}
+                >
+                    {saving ? "保存中..." : "保存"}
+                </Button>
+            </div>
+        </>
+    );
+}
+
+function FieldValueInput({
+    field,
+    value,
+    onChange,
+}: {
+    field: FriendField;
+    value: string;
+    onChange: (v: string) => void;
+}) {
+    const id = `ff-${field.id}`;
+    const cls =
+        "w-full h-9 rounded-md border border-input bg-background px-3 text-sm";
+
+    if (field.field_type === "choice") {
+        return (
+            <select
+                id={id}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className={cls}
+            >
+                <option value="">未設定</option>
+                {(field.options ?? []).map((opt) => (
+                    <option key={opt} value={opt}>
+                        {opt}
+                    </option>
+                ))}
+            </select>
+        );
+    }
+
+    const type =
+        field.field_type === "number"
+            ? "number"
+            : field.field_type === "date"
+                ? "date"
+                : field.field_type === "phone"
+                    ? "tel"
+                    : field.field_type === "email"
+                        ? "email"
+                        : "text";
+
+    return (
+        <Input
+            id={id}
+            type={type}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            maxLength={1000}
+        />
     );
 }
 

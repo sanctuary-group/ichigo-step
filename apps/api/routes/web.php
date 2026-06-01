@@ -17,6 +17,7 @@ use App\Http\Controllers\DataManagementController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\FriendFieldController;
 use App\Http\Controllers\FriendFieldFolderController;
+use App\Http\Controllers\FriendFieldValueController;
 use App\Http\Controllers\FriendTagController;
 use App\Http\Controllers\GreetingController;
 use App\Http\Controllers\HomeController;
@@ -30,6 +31,7 @@ use App\Http\Controllers\QrActionFolderController;
 use App\Http\Controllers\RichMenuController;
 use App\Http\Controllers\RichMenuFolderController;
 use App\Http\Controllers\Settings\ChannelController;
+use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\TemplateFolderController;
@@ -55,6 +57,10 @@ Route::middleware('auth')->group(function () {
         ->names('settings.channels');
     Route::post('settings/channels/{channel}/test', [ChannelController::class, 'test'])
         ->name('settings.channels.test');
+
+    Route::get('settings/profile', [ProfileController::class, 'show'])->name('settings.profile');
+    Route::patch('settings/profile', [ProfileController::class, 'update'])->name('settings.profile.update');
+    Route::patch('settings/profile/password', [ProfileController::class, 'updatePassword'])->name('settings.profile.password');
 
     Route::get('/chat', [ChatController::class, 'index'])->name('chat');
     Route::get('/chat/settings', fn () => Inertia::render('Chat/Settings'))->name('chat.settings');
@@ -174,6 +180,9 @@ Route::middleware('auth')->group(function () {
     Route::post('friends/{friend}/refresh-profile', [FriendController::class, 'refreshProfile'])
         ->name('friends.refreshProfile');
 
+    Route::put('friends/{friend}/field-values', [FriendFieldValueController::class, 'update'])
+        ->name('friends.fieldValues.update');
+
     Route::post('friends/{friend}/tags/{tag}', [FriendTagController::class, 'attach'])
         ->name('friends.tags.attach');
     Route::delete('friends/{friend}/tags/{tag}', [FriendTagController::class, 'detach'])
@@ -200,15 +209,6 @@ Route::middleware('auth')->group(function () {
     Route::post('data-management/csv/import', [CsvController::class, 'storeImport'])->name('csv.storeImport');
     Route::get('data-management/csv/{csvJob}/download', [CsvController::class, 'download'])->name('csv.download');
     Route::delete('data-management/csv/{csvJob}', [CsvController::class, 'destroy'])->name('csv.destroy');
-
-    // サイドバー項目の placeholder（順次実装）
-    $placeholderRoutes = [
-        '/settings/profile' => 'マイページ',
-        '/settings/members' => 'メンバー管理',
-    ];
-    foreach ($placeholderRoutes as $path => $title) {
-        Route::get($path, fn () => Inertia::render('Placeholder/Index', ['title' => $title]));
-    }
 });
 
 // 公開フォーム回答ページ（認証不要）

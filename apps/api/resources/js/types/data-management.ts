@@ -35,6 +35,7 @@ export type FriendField = {
     run_mode: FriendFieldRunMode;
     sort_order: number;
     values_count?: number;
+    folder?: { id: number; name: string } | null;
     created_at: string;
     updated_at: string;
 };
