@@ -12,6 +12,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ChatManagementController;
 use App\Http\Controllers\ChatStatusController;
 use App\Http\Controllers\CsvController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataManagementController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\FriendFieldController;
@@ -177,6 +178,8 @@ Route::middleware('auth')->group(function () {
         ->name('friends.tags.attach');
     Route::delete('friends/{friend}/tags/{tag}', [FriendTagController::class, 'detach'])
         ->name('friends.tags.detach');
+
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // データ管理
     Route::get('data-management', [DataManagementController::class, 'index'])->name('dataManagement.index');

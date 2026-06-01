@@ -62,7 +62,14 @@ export default function DataManagementIndex({ stats }: PageProps) {
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <HubCard
+                        href="/dashboard"
+                        icon={faChartLine}
+                        title="ダッシュボード"
+                        description="友だち増減・配信数の推移グラフを確認"
+                        subStat="直近 30 日のサマリ"
+                    />
                     <HubCard
                         href="/friends"
                         icon={faAddressBook}
