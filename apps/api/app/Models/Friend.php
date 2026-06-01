@@ -70,4 +70,9 @@ class Friend extends Model
     {
         return $this->belongsTo(ChatStatus::class);
     }
+
+    public function fieldValues(): HasMany
+    {
+        return $this->hasMany(FriendFieldValue::class);
+    }
 }

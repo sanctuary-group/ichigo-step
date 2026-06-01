@@ -11,7 +11,11 @@ use App\Http\Controllers\ScenarioFolderController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ChatManagementController;
 use App\Http\Controllers\ChatStatusController;
+use App\Http\Controllers\CsvController;
+use App\Http\Controllers\DataManagementController;
 use App\Http\Controllers\FriendController;
+use App\Http\Controllers\FriendFieldController;
+use App\Http\Controllers\FriendFieldFolderController;
 use App\Http\Controllers\FriendTagController;
 use App\Http\Controllers\GreetingController;
 use App\Http\Controllers\HomeController;
@@ -174,11 +178,28 @@ Route::middleware('auth')->group(function () {
     Route::delete('friends/{friend}/tags/{tag}', [FriendTagController::class, 'detach'])
         ->name('friends.tags.detach');
 
-    // サイドバー項目の placeholder（B-3b 以降で順次実装）
+    // データ管理
+    Route::get('data-management', [DataManagementController::class, 'index'])->name('dataManagement.index');
+
+    Route::get('data-management/friend-fields', [FriendFieldController::class, 'index'])->name('friendFields.index');
+    Route::get('data-management/friend-fields/new', [FriendFieldController::class, 'create'])->name('friendFields.create');
+    Route::post('data-management/friend-fields', [FriendFieldController::class, 'store'])->name('friendFields.store');
+    Route::get('data-management/friend-fields/{friendField}/edit', [FriendFieldController::class, 'edit'])->name('friendFields.edit');
+    Route::patch('data-management/friend-fields/{friendField}', [FriendFieldController::class, 'update'])->name('friendFields.update');
+    Route::delete('data-management/friend-fields/{friendField}', [FriendFieldController::class, 'destroy'])->name('friendFields.destroy');
+    Route::resource('friend-field-folders', FriendFieldFolderController::class)
+        ->only(['store', 'update', 'destroy'])
+        ->names('friendFieldFolders');
+
+    Route::get('data-management/csv', [CsvController::class, 'index'])->name('csv.index');
+    Route::get('data-management/csv/new', [CsvController::class, 'createExport'])->name('csv.createExport');
+    Route::post('data-management/csv/export', [CsvController::class, 'storeExport'])->name('csv.storeExport');
+    Route::post('data-management/csv/import', [CsvController::class, 'storeImport'])->name('csv.storeImport');
+    Route::get('data-management/csv/{csvJob}/download', [CsvController::class, 'download'])->name('csv.download');
+    Route::delete('data-management/csv/{csvJob}', [CsvController::class, 'destroy'])->name('csv.destroy');
+
+    // サイドバー項目の placeholder（順次実装）
     $placeholderRoutes = [
-        '/data-management' => 'データ管理',
-        '/data-management/friend-fields' => '友だち情報管理',
-        '/data-management/csv' => 'CSV 管理',
         '/settings/profile' => 'マイページ',
         '/settings/members' => 'メンバー管理',
     ];
