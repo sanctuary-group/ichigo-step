@@ -188,10 +188,17 @@ function ChatHeader({
                 </TooltipContent>
             </Tooltip>
 
-            <FriendAvatar friend={friend} className="size-8" />
-            <div className="font-medium text-sm text-primary truncate min-w-0">
-                {name}
-            </div>
+            <Link
+                href={`/friends/${friend.id}`}
+                className="group flex items-center gap-1 sm:gap-2 min-w-0 rounded-md -mx-1 px-1 py-0.5 hover:bg-muted/60 transition-colors"
+                aria-label={`${name} の詳細情報を開く`}
+                title="友だちの詳細情報を開く"
+            >
+                <FriendAvatar friend={friend} className="size-8" />
+                <div className="font-medium text-sm text-primary truncate min-w-0 group-hover:underline">
+                    {name}
+                </div>
+            </Link>
 
             <div className="flex-1" />
 

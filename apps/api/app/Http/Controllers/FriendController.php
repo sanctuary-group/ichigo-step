@@ -4,6 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Friend\UpdateFriendRequest;
 use App\Models\Friend;
+use App\Models\FriendField;
+use App\Models\FriendScenario;
+use App\Models\Message;
+use App\Models\Scenario;
+use App\Models\ScenarioStep;
 use App\Services\Line\LineClient;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,11 +61,93 @@ class FriendController extends Controller
         ]);
     }
 
+    public function show(Friend $friend): Response
+    {
+        $friend->load(['tags', 'chatStatus', 'fieldValues', 'lineChannel:id,name']);
+
+        $friendFields = FriendField::with('folder:id,name')
+            ->orderBy('friend_field_folder_id')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get(['id', 'friend_field_folder_id', 'name', 'field_type', 'options']);
+
+        return Inertia::render('Friends/Show', [
+            'friend' => $friend,
+            'friendFields' => $friendFields,
+            'messageCount' => Message::where('friend_id', $friend->id)->count(),
+            'stepDelivery' => $this->stepDelivery($friend),
+            'stepHistory' => $this->stepHistory($friend),
+            'scenarioOptions' => Scenario::where('line_channel_id', $friend->line_channel_id)
+                ->where('is_active', true)
+                ->has('steps')
+                ->orderBy('name')
+                ->get(['id', 'name']),
+        ]);
+    }
+
+    /** 進行中（または一時停止中）のステップ配信状況を返す。 */
+    private function stepDelivery(Friend $friend): ?array
+    {
+        $enroll = FriendScenario::with('scenario:id,name')
+            ->where('friend_id', $friend->id)
+            ->whereIn('status', ['active', 'delivering', 'paused'])
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $enroll) {
+            return null;
+        }
+
+        return [
+            'scenario_name' => $enroll->scenario?->name ?? '(削除済みシナリオ)',
+            'step_label' => 'ステップ '.($enroll->current_step_order + 1),
+            'status' => $enroll->status,
+            'next_delivery_at' => $enroll->next_delivery_at?->toIso8601String(),
+        ];
+    }
+
+    /** ステップ配信の配信履歴（このシナリオ起点のメッセージ）を返す。 */
+    private function stepHistory(Friend $friend): array
+    {
+        $messages = Message::where('friend_id', $friend->id)
+            ->whereNotNull('scenario_step_id')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->limit(100)
+            ->get(['id', 'scenario_step_id', 'content', 'sent_at', 'created_at']);
+
+        $steps = ScenarioStep::with('scenario:id,name')
+            ->whereIn('id', $messages->pluck('scenario_step_id')->unique())
+            ->get(['id', 'scenario_id', 'step_order'])
+            ->keyBy('id');
+
+        return $messages->map(function (Message $m) use ($steps) {
+            $step = $steps->get($m->scenario_step_id);
+
+            return [
+                'id' => $m->id,
+                'delivered_at' => ($m->sent_at ?? $m->created_at)->toIso8601String(),
+                'scenario_name' => $step?->scenario?->name ?? '—',
+                'step_label' => $step ? 'ステップ '.($step->step_order + 1) : '—',
+                'count' => $step ? $step->step_order + 1 : null,
+                'preview' => mb_strimwidth((string) $m->content, 0, 40, '…'),
+            ];
+        })->all();
+    }
+
     public function toggleHidden(Friend $friend): RedirectResponse
     {
         $friend->forceFill(['is_hidden' => ! $friend->is_hidden])->save();
 
         return back(303);
+    }
+
+    public function destroy(Friend $friend): RedirectResponse
+    {
+        $friend->delete();
+
+        return redirect()->route('friends.index')
+            ->with('flash.success', '友だちを削除しました');
     }
 
     public function toggleRead(Friend $friend): RedirectResponse

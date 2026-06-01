@@ -18,6 +18,7 @@ use App\Http\Controllers\FriendController;
 use App\Http\Controllers\FriendFieldController;
 use App\Http\Controllers\FriendFieldFolderController;
 use App\Http\Controllers\FriendFieldValueController;
+use App\Http\Controllers\FriendScenarioController;
 use App\Http\Controllers\FriendTagController;
 use App\Http\Controllers\GreetingController;
 use App\Http\Controllers\HomeController;
@@ -167,8 +168,11 @@ Route::middleware('auth')->group(function () {
         ->only(['store', 'update', 'destroy']);
 
     Route::get('friends', [FriendController::class, 'index'])->name('friends.index');
+    Route::get('friends/{friend}', [FriendController::class, 'show'])->name('friends.show');
     Route::patch('friends/{friend}', [FriendController::class, 'update'])
         ->name('friends.update');
+    Route::delete('friends/{friend}', [FriendController::class, 'destroy'])
+        ->name('friends.destroy');
     Route::patch('friends/{friend}/hidden', [FriendController::class, 'toggleHidden'])
         ->name('friends.toggleHidden');
     Route::patch('friends/{friend}/read', [FriendController::class, 'toggleRead'])
@@ -182,6 +186,11 @@ Route::middleware('auth')->group(function () {
 
     Route::put('friends/{friend}/field-values', [FriendFieldValueController::class, 'update'])
         ->name('friends.fieldValues.update');
+
+    Route::post('friends/{friend}/scenario/enroll', [FriendScenarioController::class, 'enroll'])
+        ->name('friends.scenario.enroll');
+    Route::post('friends/{friend}/scenario/stop', [FriendScenarioController::class, 'stop'])
+        ->name('friends.scenario.stop');
 
     Route::post('friends/{friend}/tags/{tag}', [FriendTagController::class, 'attach'])
         ->name('friends.tags.attach');
