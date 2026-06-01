@@ -39,6 +39,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => fn () => $request->user()?->only(['id', 'name', 'email']),
+                'operator' => fn () => $request->user('admin')?->only(['id', 'name', 'email', 'role']),
             ],
             'channels' => fn () => $request->user()
                 ? \App\Models\LineChannel::where('is_active', true)

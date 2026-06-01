@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminSessionController;
+use App\Http\Controllers\Admin\AgencyController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\AutoReplyController;
@@ -41,6 +44,28 @@ use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\TemplateFolderController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+/*
+|--------------------------------------------------------------------------
+| 運営側 管理画面（/admin・operators guard）
+|--------------------------------------------------------------------------
+*/
+Route::prefix('admin')->group(function () {
+    Route::middleware('guest:admin')->group(function () {
+        Route::get('login', [AdminSessionController::class, 'create'])->name('admin.login');
+        Route::post('login', [AdminSessionController::class, 'store'])->name('admin.login.store');
+    });
+
+    Route::middleware('auth:admin')->group(function () {
+        Route::get('/', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+        Route::post('logout', [AdminSessionController::class, 'destroy'])->name('admin.logout');
+
+        Route::get('agencies', [AgencyController::class, 'index'])->name('admin.agencies.index');
+        Route::get('agencies/{organization}', [AgencyController::class, 'show'])->name('admin.agencies.show');
+        Route::patch('agencies/{organization}/status', [AgencyController::class, 'updateStatus'])->name('admin.agencies.status');
+        Route::patch('agencies/{organization}/plan', [AgencyController::class, 'updatePlan'])->name('admin.agencies.plan');
+    });
+});
 
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'show'])->name('register.show');

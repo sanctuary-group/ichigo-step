@@ -5,6 +5,7 @@ use App\Http\Middleware\VerifyLineSignature;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -24,6 +25,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'verify.line' => VerifyLineSignature::class,
         ]);
+
+        // /admin 配下は運営者ログイン、それ以外は利用者ログインへ誘導
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('admin', 'admin/*')
+            ? route('admin.login')
+            : route('login'));
+        $middleware->redirectUsersTo(fn (Request $request) => $request->is('admin', 'admin/*')
+            ? route('admin.dashboard')
+            : '/');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

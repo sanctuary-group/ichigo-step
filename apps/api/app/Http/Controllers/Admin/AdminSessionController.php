@@ -1,0 +1,56 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class AdminSessionController extends Controller
+{
+    public function create(): Response
+    {
+        return Inertia::render('Admin/Auth/Login');
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
+        ]);
+
+        if (! Auth::guard('admin')->attempt($validated, $request->boolean('remember'))) {
+            throw ValidationException::withMessages([
+                'email' => 'メールアドレスまたはパスワードが違います。',
+            ]);
+        }
+
+        $operator = Auth::guard('admin')->user();
+
+        if (! $operator->is_active) {
+            Auth::guard('admin')->logout();
+            throw ValidationException::withMessages([
+                'email' => 'このアカウントは無効化されています。',
+            ]);
+        }
+
+        $operator->forceFill(['last_login_at' => now()])->save();
+        $request->session()->regenerate();
+
+        return redirect()->intended('/admin');
+    }
+
+    public function destroy(Request $request): RedirectResponse
+    {
+        Auth::guard('admin')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/admin/login');
+    }
+}
