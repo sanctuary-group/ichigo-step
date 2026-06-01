@@ -15,7 +15,9 @@ class PublicQrController extends Controller
     public function __construct(private ChannelResolver $resolver) {}
 
     /**
-     * 追跡 URL。読み込み数を加算して LINE 友だち追加 URL へリダイレクトする。
+     * 追跡 URL。読み込み数を加算する。
+     * チャネルに LIFF ID があり、かつ発火するアクション付きなら LIFF ランディングへ。
+     * それ以外は従来どおり LINE 友だち追加 URL へリダイレクトする。
      */
     public function redirect(string $token): RedirectResponse
     {
@@ -32,9 +34,14 @@ class PublicQrController extends Controller
         // 流入計測（読み込み人数）
         QrAction::withoutGlobalScopes()->where('id', $qr->id)->increment('scan_count');
 
-        $addUrl = $this->friendAddUrl($qr);
+        // LIFF でスキャン者を捕捉 → アクション（タグ/シナリオ）を実発火させる
+        if ($qr->lineChannel?->liff_id && $qr->action_type !== 'none') {
+            return redirect()->away(
+                'https://liff.line.me/'.$qr->lineChannel->liff_id.'/'.$qr->token,
+            );
+        }
 
-        return redirect()->away($addUrl);
+        return redirect()->away($this->friendAddUrl($qr));
     }
 
     /**

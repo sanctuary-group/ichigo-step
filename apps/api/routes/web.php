@@ -34,6 +34,7 @@ use App\Http\Controllers\FormFolderController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PublicFormController;
 use App\Http\Controllers\PublicFriendAddController;
+use App\Http\Controllers\PublicLiffController;
 use App\Http\Controllers\PublicQrController;
 use App\Http\Controllers\PublicShortLinkController;
 use App\Http\Controllers\QrActionController;
@@ -275,6 +276,9 @@ Route::post('/f/{token}', [PublicFormController::class, 'submit'])->name('public
 // QR コードアクション 追跡 URL / QR 画像（認証不要）
 Route::get('/qr/{token}/image', [PublicQrController::class, 'image'])->name('publicQr.image');
 Route::get('/qr/{token}', [PublicQrController::class, 'redirect'])->name('publicQr.redirect');
+
+// QR アクション LIFF ランディング（LINE アプリ内ブラウザで開かれる・認証不要）
+Route::get('/liff/qr/{token}', [PublicLiffController::class, 'qr'])->name('publicLiff.qr');
 
 // 短縮 URL リダイレクト（認証不要）
 Route::get('/s/{token}', [PublicShortLinkController::class, 'redirect'])->name('shortLink.redirect');

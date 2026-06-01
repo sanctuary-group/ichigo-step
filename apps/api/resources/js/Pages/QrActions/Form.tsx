@@ -45,8 +45,8 @@ type FormShape = {
 
 const ACTIONS: { value: QrActionType; label: string; icon: typeof faTag; desc: string }[] = [
     { value: "track_source", label: "流入計測のみ", icon: faChartLine, desc: "このURL経由の読み込み数を計測します" },
-    { value: "add_tag", label: "タグを付与", icon: faTag, desc: "登録した友だちにタグを付けます（LIFF対応時に発火）" },
-    { value: "start_scenario", label: "シナリオ開始", icon: faStairs, desc: "登録した友だちにステップ配信を開始します（LIFF対応時に発火）" },
+    { value: "add_tag", label: "タグを付与", icon: faTag, desc: "このQR経由で登録した友だちにタグを付けます" },
+    { value: "start_scenario", label: "シナリオ開始", icon: faStairs, desc: "このQR経由で登録した友だちにステップ配信を開始します" },
     { value: "none", label: "なし", icon: faBan, desc: "アクションを設定しません" },
 ];
 
@@ -212,7 +212,7 @@ export default function QrActionForm({
 
                                 {(form.data.action_type === "add_tag" || form.data.action_type === "start_scenario") && (
                                     <p className="text-xs text-amber-600 dark:text-amber-400">
-                                        ※ 友だちの自動紐付け（タグ/シナリオの自動発火）は LIFF 対応時に有効化されます。現状はスキャン数の計測まで動作します。
+                                        ※ 友だちの自動紐付け（タグ/シナリオの自動発火）には、対象チャネルに <span className="font-bold">LIFF ID</span> の設定が必要です（設定 → LINE公式アカウント）。未設定の場合はスキャン数の計測のみ動作します。
                                     </p>
                                 )}
                             </div>

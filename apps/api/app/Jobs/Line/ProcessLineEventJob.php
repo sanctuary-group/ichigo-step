@@ -9,6 +9,7 @@ use App\Models\Message;
 use App\Services\AutoReplyDispatcher;
 use App\Services\GreetingDispatcher;
 use App\Services\Line\LineClient;
+use App\Services\QrActionApplier;
 use App\Services\ScenarioEnroller;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -91,6 +92,11 @@ class ProcessLineEventJob implements ShouldQueue
         // 友だち追加トリガーの自動応答（あいさつが reply token を消費するため push で送る）
         if ($isNewFriend || $isUnblock) {
             AutoReplyDispatcher::handleFollow($friend, $channel, null);
+        }
+
+        // QR コードアクション（LIFF で捕捉した紐付け）を発火
+        if ($isNewFriend || $isUnblock) {
+            QrActionApplier::applyPending($friend, $channel, $isNewFriend, $isUnblock);
         }
     }
 
