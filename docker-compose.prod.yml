@@ -1,0 +1,83 @@
+# 本番用 Docker Compose（ConoHa VPS / ichigo-step 専用）
+#
+# - SSL 終端はホストの nginx + certbot が担当し、このスタックの nginx は
+#   127.0.0.1:8080 のみで待受（外部に直接公開しない）。
+# - DB / Redis はホストにポートを公開しない（コンテナ間ネットワークのみ）。
+# - DB パスワード等はリポジトリ直下の .env（compose 用）から注入する。
+#   ※ apps/api/.env の DB_* と必ず一致させること。
+#
+# 使い方:
+#   docker compose -f docker-compose.prod.yml up -d
+services:
+  mysql:
+    image: mysql:8
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+  api:
+    build:
+      context: ./docker/php
+    restart: unless-stopped
+    volumes:
+      - ./apps/api:/var/www/html
+      - ./docker/php/prod.ini:/usr/local/etc/php/conf.d/zz-prod.ini:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  api-worker:
+    build:
+      context: ./docker/php
+    restart: unless-stopped
+    command: ["php", "artisan", "queue:work", "--tries=3", "--sleep=3", "--max-time=3600"]
+    volumes:
+      - ./apps/api:/var/www/html
+      - ./docker/php/prod.ini:/usr/local/etc/php/conf.d/zz-prod.ini:ro
+    depends_on:
+      - api
+
+  api-scheduler:
+    build:
+      context: ./docker/php
+    restart: unless-stopped
+    command: ["php", "artisan", "schedule:work"]
+    volumes:
+      - ./apps/api:/var/www/html
+      - ./docker/php/prod.ini:/usr/local/etc/php/conf.d/zz-prod.ini:ro
+    depends_on:
+      - api
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    # ホスト nginx からのみ到達（外部公開しない）
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./apps/api:/var/www/html
+      - ./docker/nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api
+
+volumes:
+  mysql-data:
+  redis-data:
